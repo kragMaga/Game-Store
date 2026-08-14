@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Afeez\\Desktop\\Projects\\Game Store\\GameStore.Api\\GameStore.Api.csproj": {}
+    "c:\\Users\\Afeez\\Desktop\\Projects\\Game Store\\GameStore.Api\\GameStore.Api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Afeez\\Desktop\\Projects\\Game Store\\GameStore.Api\\GameStore.Api.csproj": {
+    "c:\\Users\\Afeez\\Desktop\\Projects\\Game Store\\GameStore.Api\\GameStore.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Afeez\\Desktop\\Projects\\Game Store\\GameStore.Api\\GameStore.Api.csproj",
+        "projectUniqueName": "c:\\Users\\Afeez\\Desktop\\Projects\\Game Store\\GameStore.Api\\GameStore.Api.csproj",
         "projectName": "GameStore.Api",
-        "projectPath": "C:\\Users\\Afeez\\Desktop\\Projects\\Game Store\\GameStore.Api\\GameStore.Api.csproj",
+        "projectPath": "c:\\Users\\Afeez\\Desktop\\Projects\\Game Store\\GameStore.Api\\GameStore.Api.csproj",
         "packagesPath": "C:\\Users\\Afeez\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Afeez\\Desktop\\Projects\\Game Store\\GameStore.Api\\obj\\",
+        "outputPath": "c:\\Users\\Afeez\\Desktop\\Projects\\Game Store\\GameStore.Api\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
