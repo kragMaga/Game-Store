@@ -1,0 +1,29 @@
+GET http://localhost:5019/games
+
+###
+GET http://localhost:5019/games/6
+
+###
+POST http://localhost:5019/games
+Content-Type: application/json
+
+{
+  "name": "Efootball Mobile 27",
+  "genre": "Football",
+  "price": 50.99,
+  "releasedDate": "2026-08-14"
+}
+
+###
+PUT http://localhost:5019/games/6
+Content-Type: application/json
+
+{
+  "name": "Efootball Mobile 27",
+  "genre": "Football",
+  "price": 100.99,
+  "releasedDate": "2026-08-13"
+}
+
+###
+DELETE http://localhost:5019/games/6

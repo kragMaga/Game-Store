@@ -1,0 +1,10 @@
+c:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Release\net9.0\publish\GameStore.Api.exe
+c:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Release\net9.0\publish\appsettings.Development.json
+c:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Release\net9.0\publish\appsettings.json
+c:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Release\net9.0\publish\GameStore.Api.dll
+c:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Release\net9.0\publish\GameStore.Api.deps.json
+c:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Release\net9.0\publish\GameStore.Api.runtimeconfig.json
+c:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Release\net9.0\publish\GameStore.Api.pdb
+c:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Release\net9.0\publish\Microsoft.OpenApi.dll
+c:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Release\net9.0\publish\MinimalApis.Extensions.dll
+c:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Release\net9.0\publish\MiniValidation.dll
