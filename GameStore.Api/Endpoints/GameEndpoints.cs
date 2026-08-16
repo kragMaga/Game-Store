@@ -45,7 +45,7 @@ new(
 
     public static RouteGroupBuilder MapGamesEndpoints(this WebApplication app)
     {
-var group = app.MapGroup("games").WithParameterValidation();
+        var group = app.MapGroup("games").WithParameterValidation();
         group.MapGet("/", () => games);
 
         group.MapGet("/{id}", (int id) =>
