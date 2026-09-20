@@ -10,7 +10,7 @@ public static class GenresEndpoints
     {
         var group = app.MapGroup("Genres");
 
-        group.MapGet("/", async (GameStoreContext dbContext) => await dbContext.Genres.Select(genre => genre.ToDto()).AsNoTracking().ToListAsync());
+        group.MapGet("/", async (GameStoreContext dbContext) => await dbContext.Genres.Select(genre => genre.ToDto()).AsNoTracking().ToListAsync()).RequireAuthorization();
 
         return group;
     }

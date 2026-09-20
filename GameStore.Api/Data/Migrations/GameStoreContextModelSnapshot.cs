@@ -85,6 +85,29 @@ namespace GameStore.Api.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("GameStore.Api.Entities.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
+                });
+
             modelBuilder.Entity("GameStore.Api.Entities.Game", b =>
                 {
                     b.HasOne("GameStore.Api.Entities.Genre", "Genre")

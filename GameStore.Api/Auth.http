@@ -1,0 +1,56 @@
+POST http://localhost:5019/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "Password123!"
+}
+
+###
+
+POST http://localhost:5019/auth/login
+Content-Type: application/json
+
+//{
+//  "username": "testuser",
+//  "password": "Password123!"
+//}
+
+{
+    "username": "Admin",
+    "password": "Admin123"
+}
+//{
+//    "username": "KragMaga",
+//    "password": "KragMaga123"
+//}
+
+###
+
+GET http://localhost:5019/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidGVzdHVzZXIiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJjdXN0b21lciIsImV4cCI6MTc4OTQxOTA0MiwiaXNzIjoiR2FtZVN0b3JlLkFwaSIsImF1ZCI6IkdhbWVTdG9yZS5DbGllbnQifQ.EsyttCA090HJ3I7X2HR0OTEISFie9ogVB20BxTX3pu4
+
+
+###
+
+GET  http://localhost:5019/auth/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiQWRtaW4iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJhZG1pbiIsImV4cCI6MTc4OTQzNDU2NiwiaXNzIjoiR2FtZVN0b3JlLkFwaSIsImF1ZCI6IkdhbWVTdG9yZS5DbGllbnQifQ.C5aybDEditm25_5ppy0Y1g8yhuY2FdqEnLr2sBBpZyQ
+
+
+###
+
+PUT http://localhost:5019/auth/users/2/role
+Content-Type: application/json;
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiQWRtaW4iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJhZG1pbiIsImV4cCI6MTc4OTQzNDU2NiwiaXNzIjoiR2FtZVN0b3JlLkFwaSIsImF1ZCI6IkdhbWVTdG9yZS5DbGllbnQifQ.C5aybDEditm25_5ppy0Y1g8yhuY2FdqEnLr2sBBpZyQ
+
+{
+  "role": "customer"
+}
+
+###
+
+//DELETE http://localhost:5019/auth/DeleteUser/4
+DELETE http://localhost:5019/auth/users/2
+Content-Type: application/json;
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiQWRtaW4iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJhZG1pbiIsImV4cCI6MTc4OTQzNDU2NiwiaXNzIjoiR2FtZVN0b3JlLkFwaSIsImF1ZCI6IkdhbWVTdG9yZS5DbGllbnQifQ.C5aybDEditm25_5ppy0Y1g8yhuY2FdqEnLr2sBBpZyQ
+
