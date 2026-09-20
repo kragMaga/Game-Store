@@ -19,28 +19,32 @@ public class UserService(GameStoreContext dbContext)
             .ToListAsync();
     }
 
-    public async Task<bool> UpdateRoleAsync(int id, UpdateUserRoleDto request, ClaimsPrincipal currentUser)
+    public async Task<UserOperationError> UpdateRoleAsync(
+    int id,
+    UpdateUserRoleDto request)
 {
-    if (request.Role != "admin" && request.Role != "customer")
+    if (request.Role != "admin" &&
+        request.Role != "customer")
     {
-        return false;
+        return UserOperationError.InvalidRole;
     }
 
     var user = await dbContext.Users.FindAsync(id);
 
     if (user is null)
     {
-        return false;
+        return UserOperationError.UserNotFound;
     }
 
-    // Don't allow the last admin to become a customer
-    if (user.Role == "admin" && request.Role == "customer")
+    if (user.Role == "admin" &&
+        request.Role == "customer")
     {
-        var adminCount = await dbContext.Users.CountAsync(user => user.Role == "admin");
+        var adminCount = await dbContext.Users
+            .CountAsync(user => user.Role == "admin");
 
         if (adminCount <= 1)
         {
-            return false;
+            return UserOperationError.LastAdmin;
         }
     }
 
@@ -48,33 +52,35 @@ public class UserService(GameStoreContext dbContext)
 
     await dbContext.SaveChangesAsync();
 
-    return true;
+    return UserOperationError.None;
 }
-    public async Task<bool> DeleteUserAsync(int id, ClaimsPrincipal currentUser)
+   
+    public async Task<UserOperationError> DeleteUserAsync(
+    int id,
+    ClaimsPrincipal currentUser)
 {
     var user = await dbContext.Users.FindAsync(id);
 
     if (user is null)
     {
-        return false;
+        return UserOperationError.UserNotFound;
     }
 
-    // Don't allow a user to delete themselves
     var currentUsername = currentUser.Identity?.Name;
 
     if (user.Username == currentUsername)
     {
-        return false;
+        return UserOperationError.CannotDeleteSelf;
     }
 
-    // Don't delete the last admin
     if (user.Role == "admin")
     {
-        var adminCount = await dbContext.Users.CountAsync(user => user.Role == "admin");
+        var adminCount = await dbContext.Users
+            .CountAsync(user => user.Role == "admin");
 
         if (adminCount <= 1)
         {
-            return false;
+            return UserOperationError.LastAdmin;
         }
     }
 
@@ -82,6 +88,5 @@ public class UserService(GameStoreContext dbContext)
 
     await dbContext.SaveChangesAsync();
 
-    return true;
-}
-}
+    return UserOperationError.None;
+}}

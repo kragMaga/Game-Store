@@ -55,26 +55,72 @@ public static class AuthEndpoints
 .RequireAuthorization("CanManageUsers");
 
 
- app.MapPut("/auth/users/{id}/role", async (int id, UpdateUserRoleDto request,  UserService userService, ClaimsPrincipal currentUser) =>
+ app.MapPut("/auth/users/{id}/role", async (
+    int id,
+    UpdateUserRoleDto request,
+    UserService userService,
+    ClaimsPrincipal currentUser) =>
 {
-    var success = await userService.UpdateRoleAsync(id, request, currentUser);
+    var error = await userService.UpdateRoleAsync(
+        id,
+        request);
 
-    return success
-        ? Results.NoContent()
-        : Results.BadRequest(
-            "Unable to update user role.");
+    return error switch
+{
+    UserOperationError.None => Results.NoContent(),
+
+    UserOperationError.InvalidRole => Results.BadRequest(
+        new ErrorDto(
+            "InvalidRole",
+            "Role must be either admin or customer.")),
+
+    UserOperationError.UserNotFound => Results.NotFound(
+        new ErrorDto(
+            "UserNotFound",
+            "The requested user does not exist.")),
+
+    UserOperationError.LastAdmin => Results.BadRequest(
+        new ErrorDto(
+            "LastAdmin",
+            "The last admin cannot be demoted.")),
+
+    _ => Results.BadRequest(
+        new ErrorDto(
+            "UnknownError",
+            "The operation could not be completed."))
+};
 })
 .RequireAuthorization("CanManageUsers");
 
 
 app.MapDelete("/auth/DeleteUser/{id}", async (int id, ClaimsPrincipal currentUser, UserService userService) =>
 {
-    var success = await userService.DeleteUserAsync(id, currentUser);
+    var error = await userService.DeleteUserAsync(id, currentUser);
 
-    return success
-        ? Results.NoContent()
-        : Results.BadRequest(
-            "User cannot be deleted.");
+    return error switch
+{
+    UserOperationError.None => Results.NoContent(),
+
+    UserOperationError.UserNotFound => Results.NotFound(
+        new ErrorDto(
+            "UserNotFound",
+            "The requested user does not exist.")),
+
+    UserOperationError.CannotDeleteSelf => Results.BadRequest(
+        new ErrorDto(
+            "CannotDeleteSelf",
+            "You cannot delete your own account.")),
+
+    UserOperationError.LastAdmin => Results.BadRequest(
+        new ErrorDto(
+            "LastAdmin",
+            "The last admin cannot be deleted.")),
+
+    _ => Results.BadRequest(
+        new ErrorDto(
+            "UnknownError",
+            "The operation could not be completed."))
+};
 })
 .RequireAuthorization("CanManageUsers");
 

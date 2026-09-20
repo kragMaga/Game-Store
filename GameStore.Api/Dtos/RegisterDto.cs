@@ -10,3 +10,5 @@ public record class RegisterDto(
     [Required] [MinLength(8)]
     string Password
 );
+
+

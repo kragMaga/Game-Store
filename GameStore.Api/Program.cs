@@ -53,7 +53,11 @@ builder.Services.AddAuthorization(options =>
     });
 });
 
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 app.UseAuthentication();
 app.UseAuthorization();
