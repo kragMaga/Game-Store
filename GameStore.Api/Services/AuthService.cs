@@ -10,33 +10,40 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace GameStore.Api.Services;
 
-public class AuthService(GameStoreContext dbContext, IConfiguration configuration)
+public class AuthService(GameStoreContext dbContext, IConfiguration configuration, ILogger<AuthService> logger)
 {
-    public async Task<bool> RegisterAsync(RegisterDto request)
+    public async Task<RegistrationError> RegisterAsync(RegisterDto request)
     {
         if (string.IsNullOrWhiteSpace(request.Username))
         {
-            return false;
+            return RegistrationError.UsernameRequired;
+        }
+
+        var username = request.Username.Trim();
+
+        if (username.Length is < 5 or > 20)
+        {
+            return RegistrationError.UsernameLengthInvalid;
         }
 
         if (string.IsNullOrWhiteSpace(request.Password))
         {
-            return false;
+            return RegistrationError.PasswordRequired;
         }
 
         if (request.Password.Length < 8)
         {
-            return false;
+            return RegistrationError.PasswordTooShort;
         }
-
-        var username = request.Username.Trim();
 
         var userAlreadyExists = await dbContext.Users
             .AnyAsync(user => user.Username == username);
 
         if (userAlreadyExists)
         {
-            return false;
+            logger.LogWarning(
+                "Registration rejected because the requested username is already in use");
+            return RegistrationError.UsernameAlreadyTaken;
         }
 
         var user = new User
@@ -56,17 +63,20 @@ public class AuthService(GameStoreContext dbContext, IConfiguration configuratio
 
         await dbContext.SaveChangesAsync();
 
-        return true;
+        logger.LogInformation("Registered new customer account with user ID {UserId}", user.Id);
+        return RegistrationError.None;
     }
 
     public async Task<string?> LoginAsync(LoginDto request)
     {
+        var username = request.Username.Trim();
         var user = await dbContext.Users
             .SingleOrDefaultAsync(
-                user => user.Username == request.Username);
+                user => user.Username == username);
 
         if (user is null)
         {
+            logger.LogWarning("Login failed because the supplied credentials were not valid");
             return null;
         }
 
@@ -80,9 +90,11 @@ public class AuthService(GameStoreContext dbContext, IConfiguration configuratio
 
         if (passwordResult == PasswordVerificationResult.Failed)
         {
+            logger.LogWarning("Login failed because the supplied credentials were not valid");
             return null;
         }
 
+        logger.LogInformation("User ID {UserId} authenticated successfully", user.Id);
         return CreateToken(user);
     }
 

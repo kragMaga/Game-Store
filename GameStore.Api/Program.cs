@@ -1,8 +1,11 @@
 using System.Text;
 using GameStore.Api.Data;
+using GameStore.Api.Documentation;
 using GameStore.Api.Endpoints;
+using GameStore.Api.Middleware;
 using GameStore.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,7 +15,11 @@ builder.Services.AddSqlite<GameStoreContext>(connString);
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UserService>();
 
-var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT key is missing.");
+var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT key is missing. Configure Jwt:Key using user secrets or an environment variable.");
+if (Encoding.UTF8.GetByteCount(jwtKey) < 32)
+{
+    throw new InvalidOperationException("JWT key must be at least 32 bytes long.");
+}
 
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("JWT issuer is missing.");
 
@@ -54,10 +61,40 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddProblemDetails();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Game Store API",
+        Version = "v1",
+        Description = "Browse games and genres, manage the catalog, and administer user accounts."
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter a JWT access token."
+    });
+
+    options.OperationFilter<AuthorizeCheckOperationFilter>();
+});
 
 var app = builder.Build();
 
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseExceptionHandler();
+app.UseStatusCodePages();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -68,3 +105,5 @@ app.MapAuthEndpoints();
 
 await app.MigrateDbAsync();
 app.Run();
+
+public partial class Program { }

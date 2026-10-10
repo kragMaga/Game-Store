@@ -6,7 +6,7 @@ namespace GameStore.Api.Data;
 
 public static class DbInitializer
 {
-    public static async Task SeedAdminAsync(GameStoreContext dbContext)
+    public static async Task SeedAdminAsync(GameStoreContext dbContext, string adminPassword)
     {
         // Check if an admin already exists
         var adminExists = await dbContext.Users.AnyAsync(user => user.Role == "admin");
@@ -25,7 +25,7 @@ public static class DbInitializer
 
         var passwordHasher = new PasswordHasher<User>();
 
-        admin.PasswordHash = passwordHasher.HashPassword(admin, "Admin123");
+        admin.PasswordHash = passwordHasher.HashPassword(admin, adminPassword);
 
         dbContext.Users.Add(admin);
 

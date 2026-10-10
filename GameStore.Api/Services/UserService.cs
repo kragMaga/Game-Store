@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.Api.Services;
 
-public class UserService(GameStoreContext dbContext)
+public class UserService(GameStoreContext dbContext, ILogger<UserService> logger)
 {
     public async Task<List<object>> GetUsersAsync()
     {
@@ -26,6 +26,7 @@ public class UserService(GameStoreContext dbContext)
     if (request.Role != "admin" &&
         request.Role != "customer")
     {
+        logger.LogWarning("Role update rejected for user ID {UserId}: requested role is invalid", id);
         return UserOperationError.InvalidRole;
     }
 
@@ -33,6 +34,7 @@ public class UserService(GameStoreContext dbContext)
 
     if (user is null)
     {
+        logger.LogWarning("Role update failed because user ID {UserId} was not found", id);
         return UserOperationError.UserNotFound;
     }
 
@@ -44,14 +46,21 @@ public class UserService(GameStoreContext dbContext)
 
         if (adminCount <= 1)
         {
+            logger.LogWarning("Role update rejected for user ID {UserId}: cannot demote the last admin", id);
             return UserOperationError.LastAdmin;
         }
     }
 
+    var previousRole = user.Role;
     user.Role = request.Role;
 
     await dbContext.SaveChangesAsync();
 
+    logger.LogInformation(
+        "Updated role for user ID {UserId} from {PreviousRole} to {NewRole}",
+        id,
+        previousRole,
+        request.Role);
     return UserOperationError.None;
 }
    
@@ -63,6 +72,7 @@ public class UserService(GameStoreContext dbContext)
 
     if (user is null)
     {
+        logger.LogWarning("User deletion failed because user ID {UserId} was not found", id);
         return UserOperationError.UserNotFound;
     }
 
@@ -70,6 +80,7 @@ public class UserService(GameStoreContext dbContext)
 
     if (user.Username == currentUsername)
     {
+        logger.LogWarning("User deletion rejected: user ID {UserId} attempted to delete their own account", id);
         return UserOperationError.CannotDeleteSelf;
     }
 
@@ -80,6 +91,7 @@ public class UserService(GameStoreContext dbContext)
 
         if (adminCount <= 1)
         {
+            logger.LogWarning("User deletion rejected for user ID {UserId}: cannot delete the last admin", id);
             return UserOperationError.LastAdmin;
         }
     }
@@ -88,5 +100,6 @@ public class UserService(GameStoreContext dbContext)
 
     await dbContext.SaveChangesAsync();
 
+    logger.LogInformation("Deleted user account with ID {UserId}", id);
     return UserOperationError.None;
 }}

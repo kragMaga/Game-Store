@@ -164,3 +164,6 @@ C:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Debug\net9.0\Micros
 C:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Debug\net9.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 C:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Debug\net9.0\Microsoft.IdentityModel.Tokens.dll
 C:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Debug\net9.0\System.IdentityModel.Tokens.Jwt.dll
+C:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\Afeez\Desktop\Projects\Game Store\GameStore.Api\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll
