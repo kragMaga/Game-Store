@@ -7,5 +7,9 @@ public enum RegistrationError
     UsernameLengthInvalid,
     PasswordRequired,
     PasswordTooShort,
-    UsernameAlreadyTaken
+    PasswordPolicyFailed,
+    UsernameAlreadyTaken,
+    EmailRequired,
+    EmailInvalid,
+    EmailAlreadyTaken
 }

@@ -1,6 +1,7 @@
 using GameStore.Api.Data;
 using GameStore.Api.Dtos;
 using GameStore.Api.Mapping;
+using GameStore.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.Api.Endpoints;
@@ -9,10 +10,12 @@ public static class GenresEndpoints
 {
     public static RouteGroupBuilder MapGenresEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("Genres").WithTags("Genres");
+        var group = app.MapGroup("genres").WithTags("Genres");
 
         group.MapGet("/", async (
             GameStoreContext dbContext,
+            CatalogResponseCache catalogCache,
+            HttpContext httpContext,
             int page = 1,
             int pageSize = 10,
             string? search = null) =>
@@ -27,27 +30,35 @@ public static class GenresEndpoints
 
             var skip = (int)Math.Min((long)(page - 1) * pageSize, int.MaxValue);
 
-            var genresQuery = dbContext.Genres.AsNoTracking();
-            if (!string.IsNullOrWhiteSpace(search))
+            var normalizedSearch = search?.Trim().ToUpperInvariant() ?? string.Empty;
+            var cacheKey = $"genres:{page}:{pageSize}:{Uri.EscapeDataString(normalizedSearch)}";
+            var response = await catalogCache.GetOrCreateAsync(cacheKey, async () =>
             {
-                var searchTerm = search.Trim().ToLower();
-                genresQuery = genresQuery.Where(genre => genre.Name.ToLower().Contains(searchTerm));
-            }
+                var genresQuery = dbContext.Genres.AsNoTracking();
+                if (!string.IsNullOrWhiteSpace(normalizedSearch))
+                {
+                    var searchTerm = normalizedSearch.ToLowerInvariant();
+                    genresQuery = genresQuery.Where(genre => genre.Name.ToLower().Contains(searchTerm));
+                }
 
-            var totalItems = await genresQuery.CountAsync();
-            var items = await genresQuery
-                .OrderBy(genre => genre.Id)
-                .Skip(skip)
-                .Take(pageSize)
-                .Select(genre => genre.ToDto())
-                .ToListAsync();
+                var totalItems = await genresQuery.CountAsync();
+                var items = await genresQuery
+                    .OrderBy(genre => genre.Id)
+                    .Skip(skip)
+                    .Take(pageSize)
+                    .Select(genre => genre.ToDto())
+                    .ToListAsync();
 
-            return Results.Ok(new PagedResponseDto<GenreDto>(
-                items,
-                page,
-                pageSize,
-                totalItems,
-                (int)Math.Ceiling(totalItems / (double)pageSize)));
+                return new PagedResponseDto<GenreDto>(
+                    items,
+                    page,
+                    pageSize,
+                    totalItems,
+                    (int)Math.Ceiling(totalItems / (double)pageSize));
+            });
+
+            httpContext.Response.Headers.CacheControl = "private, no-store";
+            return Results.Ok(response);
         })
         .WithName("ListGenres")
         .WithSummary("List genres")

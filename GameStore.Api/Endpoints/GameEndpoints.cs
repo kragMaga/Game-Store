@@ -4,6 +4,7 @@ using GameStore.Api.Data;
 using GameStore.Api.Dtos;
 using GameStore.Api.Entities;
 using GameStore.Api.Mapping;
+using GameStore.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 public static class GameEndpoints
@@ -16,7 +17,9 @@ public static class GameEndpoints
 
         group.MapGet("/", async (
             GameStoreContext dbContext,
+            CatalogResponseCache catalogCache,
             ILoggerFactory loggerFactory,
+            HttpContext httpContext,
             int page = 1,
             int pageSize = 10,
             int? genreId = null,
@@ -47,48 +50,64 @@ public static class GameEndpoints
                     detail: "Prices cannot be negative, and minPrice cannot exceed maxPrice.");
             }
 
-            var gamesQuery = dbContext.Games
-                .Include(game => game.Genre)
-                .AsNoTracking()
-                .AsQueryable();
-
-            if (genreId.HasValue)
-            {
-                gamesQuery = gamesQuery.Where(game => game.GenreId == genreId.Value);
-            }
-
-            if (minPrice.HasValue)
-            {
-                gamesQuery = gamesQuery.Where(game => game.Price >= minPrice.Value);
-            }
-
-            if (maxPrice.HasValue)
-            {
-                gamesQuery = gamesQuery.Where(game => game.Price <= maxPrice.Value);
-            }
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var searchTerm = search.Trim().ToLower();
-                gamesQuery = gamesQuery.Where(game =>
-                    game.Name.ToLower().Contains(searchTerm) ||
-                    game.Genre!.Name.ToLower().Contains(searchTerm));
-            }
-
-            var totalItems = await gamesQuery.CountAsync();
-            var items = await gamesQuery
-                .OrderBy(game => game.Id)
-                .Skip(skip)
-                .Take(pageSize)
-                .Select(game => game.ToGameSummaryDto())
-                .ToListAsync();
-
-            return Results.Ok(new PagedResponseDto<GameSummaryDto>(
-                items,
+            var normalizedSearch = search?.Trim().ToUpperInvariant() ?? string.Empty;
+            var cacheKey = string.Join(':',
+                "games",
                 page,
                 pageSize,
-                totalItems,
-                (int)Math.Ceiling(totalItems / (double)pageSize)));
+                genreId?.ToString() ?? "-",
+                minPrice?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "-",
+                maxPrice?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "-",
+                Uri.EscapeDataString(normalizedSearch));
+
+            var response = await catalogCache.GetOrCreateAsync(cacheKey, async () =>
+            {
+                var gamesQuery = dbContext.Games
+                    .Include(game => game.Genre)
+                    .AsNoTracking()
+                    .AsQueryable();
+
+                if (genreId.HasValue)
+                {
+                    gamesQuery = gamesQuery.Where(game => game.GenreId == genreId.Value);
+                }
+
+                if (minPrice.HasValue)
+                {
+                    gamesQuery = gamesQuery.Where(game => game.Price >= minPrice.Value);
+                }
+
+                if (maxPrice.HasValue)
+                {
+                    gamesQuery = gamesQuery.Where(game => game.Price <= maxPrice.Value);
+                }
+
+                if (!string.IsNullOrWhiteSpace(normalizedSearch))
+                {
+                    var searchTerm = normalizedSearch.ToLowerInvariant();
+                    gamesQuery = gamesQuery.Where(game =>
+                        game.Name.ToLower().Contains(searchTerm) ||
+                        game.Genre!.Name.ToLower().Contains(searchTerm));
+                }
+
+                var totalItems = await gamesQuery.CountAsync();
+                var items = await gamesQuery
+                    .OrderBy(game => game.Id)
+                    .Skip(skip)
+                    .Take(pageSize)
+                    .Select(game => game.ToGameSummaryDto())
+                    .ToListAsync();
+
+                return new PagedResponseDto<GameSummaryDto>(
+                    items,
+                    page,
+                    pageSize,
+                    totalItems,
+                    (int)Math.Ceiling(totalItems / (double)pageSize));
+            });
+
+            httpContext.Response.Headers.CacheControl = "private, no-store";
+            return Results.Ok(response);
         })
         .WithName("ListGames")
         .WithSummary("List games with filters")
@@ -110,7 +129,7 @@ public static class GameEndpoints
             .WithDescription("Returns game details, or ProblemDetails with 404 when the ID does not exist.")
             .RequireAuthorization();
 
-        group.MapPost("/", async (CreateGameDto newGame, GameStoreContext dbContext, ILoggerFactory loggerFactory) =>
+        group.MapPost("/", async (CreateGameDto newGame, GameStoreContext dbContext, CatalogResponseCache catalogCache, ILoggerFactory loggerFactory) =>
         {
             var logger = loggerFactory.CreateLogger("GameStore.Api.Endpoints.Games");
 
@@ -127,6 +146,7 @@ public static class GameEndpoints
 
             dbContext.Games.Add(game);
             await dbContext.SaveChangesAsync();
+            catalogCache.Invalidate();
 
             logger.LogInformation("Created game with ID {GameId} in genre ID {GenreId}", game.Id, game.GenreId);
             return Results.CreatedAtRoute(GetGameEndpointName, new { id = game.Id }, game.ToGameDetailsDto());
@@ -135,7 +155,7 @@ public static class GameEndpoints
         .WithDescription("Creates a game when the supplied genre exists. Requires the admin role.")
         .RequireAuthorization("CanManageGames");
 
-        group.MapPut("/{id}", async (int id, UpdateGameDto updatedGame, GameStoreContext dbContext, ILoggerFactory loggerFactory) =>
+        group.MapPut("/{id}", async (int id, UpdateGameDto updatedGame, GameStoreContext dbContext, CatalogResponseCache catalogCache, ILoggerFactory loggerFactory) =>
         {
             var logger = loggerFactory.CreateLogger("GameStore.Api.Endpoints.Games");
             var existingGame = await dbContext.Games.FindAsync(id);
@@ -156,6 +176,7 @@ public static class GameEndpoints
 
             dbContext.Entry(existingGame).CurrentValues.SetValues(updatedGame.ToEntity(id));
             await dbContext.SaveChangesAsync();
+            catalogCache.Invalidate();
 
             logger.LogInformation("Updated game with ID {GameId}", id);
             return Results.NoContent();
@@ -164,7 +185,7 @@ public static class GameEndpoints
         .WithDescription("Updates a game and validates that its genre exists. Requires the admin role.")
         .RequireAuthorization("CanManageGames");
 
-        group.MapDelete("/{id}", async (int id, GameStoreContext dbContext, ILoggerFactory loggerFactory) =>
+        group.MapDelete("/{id}", async (int id, GameStoreContext dbContext, CatalogResponseCache catalogCache, ILoggerFactory loggerFactory) =>
         {
             var logger = loggerFactory.CreateLogger("GameStore.Api.Endpoints.Games");
             var deletedCount = await dbContext.Games
@@ -176,6 +197,7 @@ public static class GameEndpoints
                 return LogGameNotFound(logger, id);
             }
 
+            catalogCache.Invalidate();
             logger.LogInformation("Deleted game with ID {GameId}", id);
             return Results.NoContent();
         })
