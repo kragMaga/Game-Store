@@ -11,5 +11,6 @@ public enum RegistrationError
     UsernameAlreadyTaken,
     EmailRequired,
     EmailInvalid,
-    EmailAlreadyTaken
+    EmailAlreadyTaken,
+    RegistrationFailed
 }

@@ -17,6 +17,15 @@ dotnet user-secrets set "Email:FromAddress" "noreply@example.com" --project Game
 dotnet user-secrets set "ExternalAuth:Authority" "https://identity-provider.example.com" --project GameStore.Api
 dotnet user-secrets set "ExternalAuth:ClientId" "oidc-client-id" --project GameStore.Api
 dotnet user-secrets set "ExternalAuth:ClientSecret" "oidc-client-secret" --project GameStore.Api
+
+
+
+dotnet user-secrets set "ExternalAuth:Google:ClientId" "YOUR_GOOGLE_CLIENT_ID"
+dotnet user-secrets set "ExternalAuth:Google:ClientSecret" "YOUR_GOOGLE_SECRET"
+
+dotnet user-secrets set "ExternalAuth:Microsoft:ClientId" "YOUR_MICROSOFT_CLIENT_ID"
+dotnet user-secrets set "ExternalAuth:Microsoft:ClientSecret" "YOUR_MICROSOFT_SECRET"
+
 ```
 
 Use the bootstrap username, email, and password only when creating the first admin account. Existing databases keep their current admin credentials; changing these secrets does not rename or reset an existing admin. User Secrets are for development only and are stored outside the repository. In deployed environments, supply `Jwt__Key`, `BootstrapAdmin__Username`, `BootstrapAdmin__Email`, and `BootstrapAdmin__Password` through the platform's secret manager/environment configuration. Production must configure SMTP delivery. Never commit real secrets.

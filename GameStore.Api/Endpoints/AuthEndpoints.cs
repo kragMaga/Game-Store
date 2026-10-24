@@ -431,7 +431,8 @@ public static class AuthEndpoints
             var username = currentUser.Identity?.Name ?? "account";
             var label = Uri.EscapeDataString($"Game Store:{username}");
             var issuer = Uri.EscapeDataString("Game Store");
-            var provisioningUri = $"otpauth://totp/{label}?secret={sharedKey}&issuer={issuer}&digits=6&period=30";
+            var secret = Uri.EscapeDataString(sharedKey);
+            var provisioningUri = $"otpauth://totp/{label}?secret={secret}&issuer={issuer}&digits=6&period=30";
             return Results.Ok(new { sharedKey, provisioningUri });
         })
             .WithTags("Authentication")

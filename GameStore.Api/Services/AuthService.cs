@@ -115,7 +115,7 @@ public class AuthService(
                 return RegistrationError.PasswordPolicyFailed;
             }
 
-            return RegistrationError.UsernameLengthInvalid;
+            return RegistrationError.RegistrationFailed;
         }
 
         await SendEmailConfirmationAsync(user);
