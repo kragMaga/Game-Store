@@ -45,6 +45,50 @@ namespace GameStore.Api.Data.Migrations
                     b.ToTable("AuthSessions");
                 });
 
+            modelBuilder.Entity("GameStore.Api.Entities.EmailOutboxMessage", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("CompletedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FailureType")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LeaseExpiresAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LeaseOwner")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("NextAttemptAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProtectedPayload")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status", "NextAttemptAtUtc", "LeaseExpiresAtUtc");
+
+                    b.ToTable("EmailOutbox");
+                });
+
             modelBuilder.Entity("GameStore.Api.Entities.Game", b =>
                 {
                     b.Property<int>("Id")

@@ -1,0 +1,27 @@
+# Build output is reproducible and should never be reviewed as source.
+**/bin/
+**/obj/
+TestResults/
+**/TestResults/
+artifacts/
+
+# Local IDE state and developer credentials belong outside version control.
+.vs/
+.idea/
+*.user
+*.suo
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+secrets.json
+
+# SQLite stores accounts, password hashes, and encrypted security material.
+# Keep migrations in Git; provision databases and backups separately.
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+backups/

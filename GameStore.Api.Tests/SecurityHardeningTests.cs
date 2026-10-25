@@ -40,7 +40,7 @@ public sealed class SecurityHardeningTests
             services.AddSingleton<IAccountEmailSender>(sender);
         }));
         using var client = configured.CreateClient();
-        using var login = await client.PostAsJsonAsync("/auth/login", new { username = "Admin", password = "Admin123" });
+        using var login = await client.PostAsJsonAsync("/auth/login", new { username = "Admin", password = "Bootstrap-Cedar-River-593!" });
         var tokens = await login.Content.ReadFromJsonAsync<GameStore.Api.Dtos.AuthTokensDto>();
         client.DefaultRequestHeaders.Authorization = new("Bearer", tokens!.AccessToken);
         const string newEmail = "new-admin@example.test";
@@ -86,7 +86,7 @@ public sealed class SecurityHardeningTests
         Assert.True(updated.EmailConfirmed);
         using var oldSession = await client.GetAsync("/auth/me");
         Assert.Equal(addressClaimedBeforeConfirmation ? HttpStatusCode.OK : HttpStatusCode.Unauthorized, oldSession.StatusCode);
-        using var newLogin = await client.PostAsJsonAsync("/auth/login", new { username = "Admin", password = "Admin123" });
+        using var newLogin = await client.PostAsJsonAsync("/auth/login", new { username = "Admin", password = "Bootstrap-Cedar-River-593!" });
         Assert.Equal(HttpStatusCode.OK, newLogin.StatusCode);
         if (!addressClaimedBeforeConfirmation)
         {
@@ -297,11 +297,22 @@ public sealed class SecurityHardeningTests
     [InlineData(HttpStatusCode.ServiceUnavailable, "")]
     [InlineData(HttpStatusCode.OK, "")]
     [InlineData(HttpStatusCode.OK, "invalid-response")]
-    public async Task Screening_fails_closed_when_service_is_unavailable_or_invalid(HttpStatusCode status, string body)
+    public async Task Screening_allows_password_when_service_is_unavailable_or_invalid(HttpStatusCode status, string body)
     {
         var result = await Validator(new RangeHandler(body, status))
             .ValidateAsync(null!, new User { Role = "customer" }, "Unusual-Cedar-Moon-593!");
-        Assert.Equal("PasswordScreeningUnavailable", Assert.Single(result.Errors).Code);
+        Assert.True(result.Succeeded);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Screening_allows_password_when_network_fails_or_times_out(bool timeout)
+    {
+        Exception failure = timeout ? new TaskCanceledException("Simulated timeout") : new HttpRequestException("Simulated network failure");
+        var result = await Validator(new RangeHandler("", HttpStatusCode.OK, failure))
+            .ValidateAsync(null!, new User { Role = "customer" }, "Unusual-Cedar-Moon-593!");
+        Assert.True(result.Succeeded);
     }
 
     [Fact]
@@ -343,7 +354,7 @@ public sealed class SecurityHardeningTests
     {
         using var factory = new GameStoreWebApplicationFactory();
         using var client = factory.CreateClient();
-        using var login = await client.PostAsJsonAsync("/auth/login", new { username = "Admin", password = "Admin123" });
+        using var login = await client.PostAsJsonAsync("/auth/login", new { username = "Admin", password = "Bootstrap-Cedar-River-593!" });
         login.EnsureSuccessStatusCode();
         var tokens = await login.Content.ReadFromJsonAsync<GameStore.Api.Dtos.AuthTokensDto>();
         client.DefaultRequestHeaders.Authorization = new("Bearer", tokens!.AccessToken);
@@ -365,12 +376,13 @@ public sealed class SecurityHardeningTests
         };
     }
 
-    private sealed class RangeHandler(string body, HttpStatusCode status) : HttpMessageHandler
+    private sealed class RangeHandler(string body, HttpStatusCode status, Exception? failure = null) : HttpMessageHandler
     {
         public Uri? RequestUri { get; private set; }
         public bool Padded { get; private set; }
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+            if (failure is not null) throw failure;
             RequestUri = request.RequestUri;
             Padded = request.Headers.GetValues("Add-Padding").Single() == "true";
             return Task.FromResult(new HttpResponseMessage(status) { Content = new StringContent(body) });

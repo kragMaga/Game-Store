@@ -15,11 +15,12 @@ public class UserService(
     public async Task<AccountOperationResult> UpdateUsernameAsync(int userId, string requestedUsername)
     {
         var username = requestedUsername.Trim();
-        if (!IsAllowedUsername(username))
+        if (!UsernameRules.IsValid(username))
         {
             return AccountOperationResult.InvalidUsername;
         }
 
+        await using var transaction = await SecurityTransaction.BeginAsync(dbContext);
         var user = await userManager.FindByIdAsync(userId.ToString());
         if (user is null)
         {
@@ -34,6 +35,7 @@ public class UserService(
         }
 
         user.UserName = username;
+        // A new stamp invalidates access tokens containing the previous username.
         user.SecurityStamp = Guid.NewGuid().ToString();
         var result = await userManager.UpdateAsync(user);
         if (!result.Succeeded)
@@ -43,7 +45,11 @@ public class UserService(
                 : AccountOperationResult.InvalidUsername;
         }
 
-        logger.LogInformation("Updated username for user ID {UserId}", userId);
+        // Stamp changes alone do not invalidate refresh credentials. Revoke them
+        // too, or an old refresh token could obtain a token with the new stamp.
+        await RevokeSessionsAsync(userId);
+        await transaction.CommitAsync();
+        logger.LogInformation("Updated username and revoked sessions for user ID {UserId}", userId);
         return AccountOperationResult.Success;
     }
 
@@ -52,6 +58,9 @@ public class UserService(
         string currentPassword,
         string newPassword)
     {
+        // Keep the password update, lockout cleanup, and session revocation together.
+        // A failure at any later step must also roll back the new password hash.
+        await using var transaction = await SecurityTransaction.BeginAsync(dbContext);
         var user = await userManager.FindByIdAsync(userId.ToString());
         if (user is null)
         {
@@ -66,9 +75,10 @@ public class UserService(
                 : AccountOperationResult.PasswordPolicyFailed;
         }
 
-        await userManager.ResetAccessFailedCountAsync(user);
-        await userManager.SetLockoutEndDateAsync(user, null);
+        SecurityTransaction.RequireSucceeded(await userManager.ResetAccessFailedCountAsync(user), "ResetAccessFailedCount");
+        SecurityTransaction.RequireSucceeded(await userManager.SetLockoutEndDateAsync(user, null), "ClearLockout");
         await RevokeSessionsAsync(userId);
+        await transaction.CommitAsync();
         logger.LogInformation("Changed password and revoked existing sessions for user ID {UserId}", userId);
         return AccountOperationResult.Success;
     }
@@ -83,22 +93,16 @@ public class UserService(
             .ExecuteUpdateAsync(update => update.SetProperty(token => token.RevokedAtUtc, now));
     }
 
-    private static bool IsAllowedUsername(string username)
+    public async Task<PagedResponseDto<UserSummaryDto>> GetUsersAsync(int page, int pageSize)
     {
-        return username.Length is >= 5 and <= 20 &&
-               username.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_' or '.');
-    }
-
-    public async Task<List<object>> GetUsersAsync()
-    {
-        return await dbContext.Users
-            .Select(user => (object)new
-            {
-                user.Id,
-                Username = user.UserName,
-                user.Role
-            })
+        // Stable ordering prevents users jumping between pages. Bounds are checked
+        // at the endpoint before we calculate the database offset.
+        var query = dbContext.Users.AsNoTracking();
+        var total = await query.CountAsync();
+        var items = await query.OrderBy(user => user.Id).Skip((page - 1) * pageSize).Take(pageSize)
+            .Select(user => new UserSummaryDto(user.Id, user.UserName, user.Role))
             .ToListAsync();
+        return new(items, page, pageSize, total, (int)Math.Ceiling(total / (double)pageSize));
     }
 
     public async Task<UserOperationError> UpdateRoleAsync(
@@ -112,6 +116,9 @@ public class UserService(
         return UserOperationError.InvalidRole;
     }
 
+    // Lock before counting admins. Concurrent requests must not both see two
+    // admins and each demote one, leaving the application with no administrator.
+    await using var transaction = await SecurityTransaction.BeginAsync(dbContext);
     var user = await dbContext.Users.FindAsync(id);
 
     if (user is null)
@@ -138,6 +145,9 @@ public class UserService(
     user.SecurityStamp = Guid.NewGuid().ToString();
 
     await dbContext.SaveChangesAsync();
+    // Revoke refresh credentials as well as invalidating the old role's access tokens.
+    await RevokeSessionsAsync(id);
+    await transaction.CommitAsync();
 
     logger.LogInformation(
         "Updated role for user ID {UserId} from {PreviousRole} to {NewRole}",
@@ -151,6 +161,9 @@ public class UserService(
     int id,
     ClaimsPrincipal currentUser)
 {
+    // Share the same database locking strategy as demotion so deletion and
+    // demotion requests cannot race past the last-admin check.
+    await using var transaction = await SecurityTransaction.BeginAsync(dbContext);
     var user = await dbContext.Users.FindAsync(id);
 
     if (user is null)
@@ -159,9 +172,8 @@ public class UserService(
         return UserOperationError.UserNotFound;
     }
 
-    var currentUsername = currentUser.Identity?.Name;
-
-    if (user.UserName == currentUsername)
+    // IDs remain stable when usernames change, making them safer for ownership checks.
+    if (currentUser.FindFirstValue(ClaimTypes.NameIdentifier) == id.ToString())
     {
         logger.LogWarning("User deletion rejected: user ID {UserId} attempted to delete their own account", id);
         return UserOperationError.CannotDeleteSelf;
@@ -182,6 +194,7 @@ public class UserService(
     dbContext.Users.Remove(user);
 
     await dbContext.SaveChangesAsync();
+    await transaction.CommitAsync();
 
     logger.LogInformation("Deleted user account with ID {UserId}", id);
     return UserOperationError.None;

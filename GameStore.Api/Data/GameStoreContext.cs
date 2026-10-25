@@ -11,10 +11,13 @@ public class GameStoreContext(DbContextOptions<GameStoreContext> options) : Iden
     public DbSet<Genre> Genres => Set<Genre> ();
     public DbSet<AuthSession> AuthSessions => Set<AuthSession>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<EmailOutboxMessage> EmailOutbox => Set<EmailOutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<EmailOutboxMessage>().HasKey(item => item.Id);
+        modelBuilder.Entity<EmailOutboxMessage>().HasIndex(item => new { item.Status, item.NextAttemptAtUtc, item.LeaseExpiresAtUtc });
 
         modelBuilder.Entity<User>().ToTable("Users");
         modelBuilder.Entity<User>().Property(user => user.UserName).HasColumnName("Username");

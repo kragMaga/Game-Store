@@ -6,6 +6,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace GameStore.Api.Tests;
@@ -270,18 +271,17 @@ public sealed class ApiErrorResponseTests
     [Fact]
     public async Task Production_cookie_mode_uses_http_only_refresh_cookie_and_csrf_protection()
     {
-        var previousValue = Environment.GetEnvironmentVariable("Auth__UseRefreshTokenCookies");
-        Environment.SetEnvironmentVariable("Auth__UseRefreshTokenCookies", "true");
-        try
-        {
-            using var factory = new GameStoreWebApplicationFactory();
+            // Override only this host; another test's token mode stays unchanged.
+            using var root = new GameStoreWebApplicationFactory();
+            using var factory = root.WithWebHostBuilder(builder => builder.ConfigureAppConfiguration((_, config) =>
+                config.AddInMemoryCollection(new Dictionary<string, string?> { ["Auth:UseRefreshTokenCookies"] = "true" })));
             using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
             {
                 BaseAddress = new Uri("https://localhost"),
                 HandleCookies = true
             });
 
-            var login = await client.PostAsJsonAsync("/auth/login", new { username = "Admin", password = "Admin123" });
+            var login = await client.PostAsJsonAsync("/auth/login", new { username = "Admin", password = "Bootstrap-Cedar-River-593!" });
             login.EnsureSuccessStatusCode();
             using var loginBody = await JsonDocument.ParseAsync(await login.Content.ReadAsStreamAsync());
             Assert.False(loginBody.RootElement.TryGetProperty("refreshToken", out _));
@@ -303,11 +303,6 @@ public sealed class ApiErrorResponseTests
             using var logout = await client.PostAsync("/auth/logout", content: null);
             Assert.Equal(HttpStatusCode.NoContent, logout.StatusCode);
             Assert.Contains(logout.Headers.GetValues("Set-Cookie"), cookie => cookie.Contains("__Host-GameStore.Refresh=") && cookie.Contains("expires=Thu, 01 Jan 1970", StringComparison.OrdinalIgnoreCase));
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("Auth__UseRefreshTokenCookies", previousValue);
-        }
     }
 
     [Fact]
@@ -378,12 +373,12 @@ public sealed class ApiErrorResponseTests
     }
 
     [Theory]
-    [InlineData("ab", "Cedar-Moon-River-593!", "Invalid username")]
-    [InlineData("player1", "short", "Password is too short")]
+    [InlineData("ab", "Cedar-Moon-River-593!", "Username")]
+    [InlineData("player1", "short", "Password")]
     public async Task Register_with_invalid_fields_returns_actionable_problem(
         string username,
         string password,
-        string expectedTitle)
+        string expectedField)
     {
         using var factory = new GameStoreWebApplicationFactory();
         using var client = factory.CreateClient();
@@ -395,7 +390,10 @@ public sealed class ApiErrorResponseTests
             password
         });
 
-        using var problem = await AssertProblemAsync(response, HttpStatusCode.BadRequest, expectedTitle);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var problem = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+        Assert.Contains(problem.RootElement.GetProperty("errors").EnumerateObject(),
+            field => field.Name.Equals(expectedField, StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -795,7 +793,7 @@ public sealed class ApiErrorResponseTests
         var response = await client.PostAsJsonAsync("/auth/login", new
         {
             username = "Admin",
-            password = "Admin123"
+            password = "Bootstrap-Cedar-River-593!"
         });
         response.EnsureSuccessStatusCode();
         return await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());

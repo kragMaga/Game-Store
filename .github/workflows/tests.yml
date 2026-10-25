@@ -1,0 +1,43 @@
+name: API validation
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# Validation only needs source access. No deployment credentials are used.
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Restore
+        run: dotnet restore GameStore.Api.Tests/GameStore.Api.Tests.csproj
+      - name: Test
+        # Keep the normal nonzero exit code. Diagnostics never turn a failure green.
+        run: >-
+          dotnet test GameStore.Api.Tests/GameStore.Api.Tests.csproj
+          --no-restore --configuration Release
+          --logger "trx;LogFileName=api-tests.trx"
+          --results-directory TestResults
+          --blame-hang --blame-hang-timeout 2m
+          --blame-hang-dump-type none
+      - name: Build maintenance tool
+        run: dotnet build tools/GameStore.Maintenance/GameStore.Maintenance.csproj --configuration Release
+      - name: Upload test diagnostics
+        # Reports contain test names and assertions, not production databases or
+        # environment dumps. Upload even after test failures for diagnosis.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-results
+          path: TestResults/
+          if-no-files-found: warn
+          retention-days: 7

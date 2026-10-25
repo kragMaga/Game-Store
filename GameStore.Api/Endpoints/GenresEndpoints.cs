@@ -20,6 +20,8 @@ public static class GenresEndpoints
             int pageSize = 10,
             string? search = null) =>
         {
+            if (search?.Length > CatalogSearch.MaxLength)
+                return Results.Problem(statusCode: 400, title: "Search is too long", detail: "Search cannot exceed 100 characters.");
             if (page is < 1 or > 1000 || pageSize is < 1 or > 100 || (long)(page - 1) * pageSize > 10_000)
             {
                 return Results.Problem(
@@ -34,12 +36,7 @@ public static class GenresEndpoints
             var cacheKey = $"genres:{page}:{pageSize}:{Uri.EscapeDataString(normalizedSearch)}";
             var response = await catalogCache.GetOrCreateAsync(cacheKey, async () =>
             {
-                var genresQuery = dbContext.Genres.AsNoTracking();
-                if (!string.IsNullOrWhiteSpace(normalizedSearch))
-                {
-                    var searchTerm = normalizedSearch.ToLowerInvariant();
-                    genresQuery = genresQuery.Where(genre => genre.Name.ToLower().Contains(searchTerm));
-                }
+                var genresQuery = CatalogSearch.Genres(dbContext, normalizedSearch).AsNoTracking();
 
                 var totalItems = await genresQuery.CountAsync();
                 var items = await genresQuery

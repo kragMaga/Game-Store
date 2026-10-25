@@ -29,6 +29,10 @@ public static class GameEndpoints
         {
             var logger = loggerFactory.CreateLogger("GameStore.Api.Endpoints.Games");
 
+            // Reject oversized input before normalizing it or allocating a cache key.
+            if (search?.Length > CatalogSearch.MaxLength)
+                return Results.Problem(statusCode: 400, title: "Search is too long", detail: "Search cannot exceed 100 characters.");
+
             if (page is < 1 or > 1000 || pageSize is < 1 or > 100 || (long)(page - 1) * pageSize > 10_000)
             {
                 logger.LogWarning("Game list request rejected because pagination values are invalid");
@@ -62,7 +66,7 @@ public static class GameEndpoints
 
             var response = await catalogCache.GetOrCreateAsync(cacheKey, async () =>
             {
-                var gamesQuery = dbContext.Games
+                var gamesQuery = CatalogSearch.Games(dbContext, normalizedSearch)
                     .Include(game => game.Genre)
                     .AsNoTracking()
                     .AsQueryable();
@@ -80,14 +84,6 @@ public static class GameEndpoints
                 if (maxPrice.HasValue)
                 {
                     gamesQuery = gamesQuery.Where(game => game.Price <= maxPrice.Value);
-                }
-
-                if (!string.IsNullOrWhiteSpace(normalizedSearch))
-                {
-                    var searchTerm = normalizedSearch.ToLowerInvariant();
-                    gamesQuery = gamesQuery.Where(game =>
-                        game.Name.ToLower().Contains(searchTerm) ||
-                        game.Genre!.Name.ToLower().Contains(searchTerm));
                 }
 
                 var totalItems = await gamesQuery.CountAsync();

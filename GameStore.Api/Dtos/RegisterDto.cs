@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using GameStore.Api.Services;
 
 namespace GameStore.Api.Dtos;
 
 public record class RegisterDto(
     [Required]
-    [StringLength(20, MinimumLength = 5)]
+    [Username]
     string Username,
 
     [Required] [EmailAddress] [StringLength(256)]

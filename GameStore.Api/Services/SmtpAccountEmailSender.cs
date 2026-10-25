@@ -3,7 +3,7 @@ using System.Net.Mail;
 
 namespace GameStore.Api.Services;
 
-public sealed class SmtpAccountEmailSender(IConfiguration configuration) : IAccountEmailSender
+public sealed class SmtpAccountEmailSender(IConfiguration configuration) : IEmailTransport
 {
     public async Task SendAsync(
         string emailAddress,

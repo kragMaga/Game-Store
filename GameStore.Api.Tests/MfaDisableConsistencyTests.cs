@@ -15,6 +15,8 @@ using Xunit;
 namespace GameStore.Api.Tests;
 
 [Collection("API integration")]
+// Inject failures at individual disable steps, then check persisted state from a
+// fresh scope. This catches partial commits that a successful HTTP response can hide.
 public sealed class MfaDisableConsistencyTests
 {
     [Theory]
@@ -45,7 +47,7 @@ public sealed class MfaDisableConsistencyTests
             key = (await manager.GetAuthenticatorKeyAsync(user))!;
             recoveryCode = (await manager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10))!.First();
         }
-        using var login = await client.PostAsJsonAsync("/auth/login", new { username = "Admin", password = "Admin123" });
+        using var login = await client.PostAsJsonAsync("/auth/login", new { username = "Admin", password = "Bootstrap-Cedar-River-593!" });
         login.EnsureSuccessStatusCode();
         var tokens = (await login.Content.ReadFromJsonAsync<AuthTokensDto>())!;
         client.DefaultRequestHeaders.Authorization = new("Bearer", tokens.AccessToken);
@@ -63,7 +65,7 @@ public sealed class MfaDisableConsistencyTests
                     """);
         }
         fault.Step = failure;
-        using var response = await client.PostAsJsonAsync("/auth/me/mfa/disable", new { currentPassword = "Admin123", code = recoveryCode });
+        using var response = await client.PostAsJsonAsync("/auth/me/mfa/disable", new { currentPassword = "Bootstrap-Cedar-River-593!", code = recoveryCode });
         Assert.Equal(failure == "none" ? HttpStatusCode.NoContent : HttpStatusCode.InternalServerError, response.StatusCode);
         using (var verification = configured.Services.CreateScope())
         {
@@ -91,7 +93,7 @@ public sealed class MfaDisableConsistencyTests
         if (failure != "none")
         {
             fault.Step = "none";
-            using var retry = await client.PostAsJsonAsync("/auth/me/mfa/disable", new { currentPassword = "Admin123", code = recoveryCode });
+            using var retry = await client.PostAsJsonAsync("/auth/me/mfa/disable", new { currentPassword = "Bootstrap-Cedar-River-593!", code = recoveryCode });
             Assert.Equal(HttpStatusCode.NoContent, retry.StatusCode);
         }
     }
@@ -110,7 +112,7 @@ public sealed class MfaDisableConsistencyTests
     {
         using var factory = new GameStoreWebApplicationFactory();
         using var client = factory.CreateClient();
-        using var login = await client.PostAsJsonAsync("/auth/login", new { username = "Admin", password = "Admin123" });
+        using var login = await client.PostAsJsonAsync("/auth/login", new { username = "Admin", password = "Bootstrap-Cedar-River-593!" });
         var tokens = (await login.Content.ReadFromJsonAsync<AuthTokensDto>())!;
         client.DefaultRequestHeaders.Authorization = new("Bearer", tokens.AccessToken);
         for (var attempt = 0; attempt < 6; attempt++)
@@ -122,6 +124,8 @@ public sealed class MfaDisableConsistencyTests
 
     private sealed class FailurePlan { public string Step { get; set; } = "none"; }
 
+    // This substitute is registered only in tests. It lets Identity report a failed
+    // result without a database exception, exercising the explicit result checks.
     private sealed class FaultInjectingUserManager(
         IUserStore<User> store, IOptions<IdentityOptions> options, IPasswordHasher<User> hasher,
         IEnumerable<IUserValidator<User>> userValidators, IEnumerable<IPasswordValidator<User>> passwordValidators,

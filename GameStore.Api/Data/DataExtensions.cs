@@ -24,7 +24,7 @@ public static class DataExtensions
             }
 
                 await DbInitializer.SeedAdminAsync(dbContext, adminUsername, adminEmail, adminPassword,
-                    scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.IPasswordHasher<GameStore.Api.Entities.User>>());
+                    scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<GameStore.Api.Entities.User>>());
         }
     }
 }

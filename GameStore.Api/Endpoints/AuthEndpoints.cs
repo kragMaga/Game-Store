@@ -13,7 +13,10 @@ public static class AuthEndpoints
 {
     public static void MapAuthEndpoints(this WebApplication app)
     {
-        app.MapPost("/auth/register", async (RegisterDto request, AuthService authService) =>
+        // Group validation enforces DTO annotations before handlers can dereference
+        // missing fields. Keep service validation too for non-HTTP callers.
+        var auth = app.MapGroup("/auth").WithParameterValidation();
+        auth.MapPost("/register", async (RegisterDto request, AuthService authService) =>
 {
             var result = await authService.RegisterAsync(request);
 
@@ -43,7 +46,7 @@ public static class AuthEndpoints
                 RegistrationError.PasswordPolicyFailed => Results.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Password does not meet policy",
-                    detail: "Use at least 8 characters with uppercase, lowercase, and a number. Common or compromised passwords are rejected; retry later if password screening is unavailable."),
+                    detail: "Use at least 8 characters with uppercase, lowercase, and a number. Locally blocked passwords and confirmed breach matches are rejected."),
                 RegistrationError.UsernameAlreadyTaken => Results.Problem(
                     statusCode: StatusCodes.Status409Conflict,
                     title: "Username is already taken",
@@ -69,7 +72,7 @@ public static class AuthEndpoints
     .WithDescription("Registers a customer account. Username conflicts return 409 ProblemDetails.")
     .RequireRateLimiting("auth");
 
-        app.MapPost("/auth/login", async (
+        auth.MapPost("/login", async (
             LoginDto request,
             AuthService authService,
             HttpContext httpContext,
@@ -103,7 +106,7 @@ public static class AuthEndpoints
     .WithDescription("Valid credentials return tokens, or a short-lived MFA challenge when authenticator MFA is enabled.")
     .RequireRateLimiting("auth");
 
-        app.MapPost("/auth/login/mfa", async (
+        auth.MapPost("/login/mfa", async (
             MfaLoginDto request,
             AuthService authService,
             HttpContext httpContext,
@@ -119,7 +122,7 @@ public static class AuthEndpoints
     .WithSummary("Complete two-factor login")
     .RequireRateLimiting("auth");
 
-        app.MapGet("/auth/external/login", (IConfiguration configuration) =>
+        auth.MapGet("/external/login", (IConfiguration configuration) =>
 {
     if (string.IsNullOrWhiteSpace(configuration["ExternalAuth:Authority"]))
     {
@@ -133,7 +136,7 @@ public static class AuthEndpoints
     .WithSummary("Start OpenID Connect sign-in")
     .RequireRateLimiting("auth");
 
-        app.MapGet("/auth/external/complete", async (
+        auth.MapGet("/external/complete", async (
             SignInManager<User> signInManager,
             UserManager<User> userManager,
             AuthService authService,
@@ -219,7 +222,8 @@ public static class AuthEndpoints
             .WithSummary("Complete OpenID Connect sign-in")
             .RequireRateLimiting("auth");
 
-        app.MapGet("/auth/external/link", (IConfiguration configuration, ClaimsPrincipal currentUser) =>
+        auth.MapGet("/external/link", async (IConfiguration configuration, ClaimsPrincipal currentUser,
+            HttpContext httpContext, RecentAuthenticationService recentAuthentication) =>
         {
             if (string.IsNullOrWhiteSpace(configuration["ExternalAuth:Authority"]))
             {
@@ -229,23 +233,29 @@ public static class AuthEndpoints
             var userId = currentUser.FindFirstValue(ClaimTypes.NameIdentifier);
             var properties = new AuthenticationProperties { RedirectUri = "/auth/external/link/complete" };
             properties.Items["linkUserId"] = userId ?? string.Empty;
+            // Carry the original recent-auth proof through protected OIDC state.
+            // The callback has no bearer header, so it must recheck this proof itself.
+            properties.Items["linkReauthentication"] = await recentAuthentication.CreateExternalLinkProofAsync(httpContext);
             return Results.Challenge(properties, ["external"]);
         })
             .WithTags("Authentication")
             .WithSummary("Start linking an external identity")
+            .AddEndpointFilter<RecentAuthenticationFilter>()
             .RequireAuthorization()
             .RequireRateLimiting("auth");
 
-        app.MapGet("/auth/external/link/complete", async (
+        auth.MapGet("/external/link/complete", async (
             SignInManager<User> signInManager,
             UserManager<User> userManager,
             AuthService authService,
-            HttpContext httpContext) =>
+            HttpContext httpContext,
+            RecentAuthenticationService recentAuthentication) =>
         {
             var externalInfo = await signInManager.GetExternalLoginInfoAsync();
-            string? targetUserId = null;
-            externalInfo?.AuthenticationProperties?.Items.TryGetValue("linkUserId", out targetUserId);
-            if (externalInfo is null || !int.TryParse(targetUserId, out var userId))
+            string? proof = null;
+            externalInfo?.AuthenticationProperties?.Items.TryGetValue("linkReauthentication", out proof);
+            var targetUserId = await recentAuthentication.ValidateExternalLinkProofAsync(proof);
+            if (externalInfo is null || targetUserId is not int userId)
             {
                 await httpContext.SignOutAsync(IdentityConstants.ExternalScheme);
                 return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: "External identity linking failed");
@@ -267,9 +277,23 @@ public static class AuthEndpoints
                 : Results.Problem(statusCode: StatusCodes.Status409Conflict, title: "External identity is already linked");
         })
             .WithTags("Authentication")
-            .WithSummary("Complete linking an external identity");
+            .WithSummary("Complete linking an external identity")
+            .RequireRateLimiting("auth");
 
-        app.MapPost("/auth/refresh", async (
+        auth.MapPost("/reauthenticate", async (ReauthenticateDto request, ClaimsPrincipal user,
+            RecentAuthenticationService recentAuthentication) =>
+        {
+            var proof = await recentAuthentication.ReauthenticateAsync(user, request.CurrentPassword, request.Code);
+            return proof is null
+                ? Results.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Reauthentication failed")
+                : Results.Ok(new { reauthenticationToken = proof, expiresIn = 300 });
+        })
+            .WithTags("Authentication")
+            .WithSummary("Reauthenticate for sensitive changes")
+            .RequireAuthorization()
+            .RequireRateLimiting("auth");
+
+        auth.MapPost("/refresh", async (
             AuthService authService,
             HttpContext httpContext,
             IConfiguration configuration,
@@ -295,7 +319,7 @@ public static class AuthEndpoints
     .WithDescription("Rotates a valid refresh token and returns a new access-token and refresh-token pair.")
     .RequireRateLimiting("auth");
 
-        app.MapPost("/auth/confirm-email", async (ConfirmEmailDto request, AuthService authService) =>
+        auth.MapPost("/confirm-email", async (ConfirmEmailDto request, AuthService authService) =>
 {
     var confirmed = await authService.ConfirmEmailAsync(request.Email, request.Token);
     return confirmed
@@ -306,7 +330,7 @@ public static class AuthEndpoints
     .WithSummary("Confirm an email address")
     .RequireRateLimiting("auth");
 
-        app.MapPost("/auth/email/resend-confirmation", async (ForgotPasswordDto request, AuthService authService) =>
+        auth.MapPost("/email/resend-confirmation", async (ForgotPasswordDto request, AuthService authService) =>
 {
     await authService.ResendEmailConfirmationAsync(request.Email);
     return Results.Accepted(value: new { message = "If confirmation is pending, instructions will be sent to the account email." });
@@ -315,7 +339,7 @@ public static class AuthEndpoints
     .WithSummary("Resend an email confirmation")
     .RequireRateLimiting("auth");
 
-        app.MapPost("/auth/email/confirm-change", async (ConfirmEmailChangeDto request, AuthService authService) =>
+        auth.MapPost("/email/confirm-change", async (ConfirmEmailChangeDto request, AuthService authService) =>
         {
             var confirmed = await authService.ConfirmEmailChangeAsync(request.UserId, request.Email, request.Token);
             return confirmed
@@ -327,7 +351,7 @@ public static class AuthEndpoints
             .WithSummary("Confirm a new email address")
             .RequireRateLimiting("auth");
 
-        app.MapPost("/auth/password/forgot", async (ForgotPasswordDto request, AuthService authService) =>
+        auth.MapPost("/password/forgot", async (ForgotPasswordDto request, AuthService authService) =>
 {
     await authService.RequestPasswordResetAsync(request.Email);
     return Results.Accepted(value: new { message = "If an eligible account exists, password-reset instructions will be sent." });
@@ -337,7 +361,7 @@ public static class AuthEndpoints
     .WithDescription("Always returns the same response to prevent account enumeration.")
     .RequireRateLimiting("auth");
 
-        app.MapPost("/auth/password/reset", async (ResetPasswordDto request, AuthService authService) =>
+        auth.MapPost("/password/reset", async (ResetPasswordDto request, AuthService authService) =>
 {
     var reset = await authService.ResetPasswordAsync(request.Email, request.Token, request.NewPassword);
     return reset
@@ -348,7 +372,7 @@ public static class AuthEndpoints
     .WithSummary("Reset a password")
     .RequireRateLimiting("auth");
 
-        app.MapPost("/auth/logout", async (
+        auth.MapPost("/logout", async (
             AuthService authService,
             HttpContext httpContext,
             IConfiguration configuration,
@@ -373,7 +397,7 @@ public static class AuthEndpoints
     .WithDescription("Revokes the supplied refresh token. Safe to call repeatedly; the token is not returned or logged.")
     .RequireRateLimiting("auth");
 
-        app.MapPut("/auth/me/username", async (
+        auth.MapPut("/me/username", async (
             UpdateUsernameDto request,
             ClaimsPrincipal currentUser,
             UserService userService) =>
@@ -400,10 +424,11 @@ public static class AuthEndpoints
         })
             .WithTags("Authentication")
             .WithSummary("Update the current username")
+            .AddEndpointFilter<RecentAuthenticationFilter>()
             .WithDescription("Usernames are case-insensitive. Updating a username invalidates existing access and refresh tokens.")
             .RequireAuthorization();
 
-        app.MapPut("/auth/me/email", async (
+        auth.MapPut("/me/email", async (
             SetEmailDto request,
             ClaimsPrincipal currentUser,
             AuthService authService) =>
@@ -426,11 +451,12 @@ public static class AuthEndpoints
         })
             .WithTags("Authentication")
             .WithSummary("Add or update the current email address")
+            .AddEndpointFilter<RecentAuthenticationFilter>()
             .WithDescription("Sends confirmation to the new address. The current email and sessions remain active until confirmation succeeds.")
             .RequireAuthorization()
             .RequireRateLimiting("auth");
 
-        app.MapPost("/auth/me/mfa/setup", async (
+        auth.MapPost("/me/mfa/setup", async (
             MfaSetupDto request,
             ClaimsPrincipal currentUser,
             AuthService authService) =>
@@ -459,7 +485,7 @@ public static class AuthEndpoints
             .RequireAuthorization()
             .RequireRateLimiting("auth");
 
-        app.MapPost("/auth/me/mfa/enable", async (
+        auth.MapPost("/me/mfa/enable", async (
             MfaVerifyDto request,
             ClaimsPrincipal currentUser,
             AuthService authService) =>
@@ -476,11 +502,12 @@ public static class AuthEndpoints
         })
             .WithTags("Authentication")
             .WithSummary("Enable authenticator-app MFA")
+            .AddEndpointFilter<RecentAuthenticationFilter>()
             .WithDescription("Returns recovery codes once. Store them securely; enabling MFA signs out active sessions.")
             .RequireAuthorization()
             .RequireRateLimiting("auth");
 
-        app.MapPost("/auth/me/mfa/disable", async (
+        auth.MapPost("/me/mfa/disable", async (
             MfaDisableDto request,
             ClaimsPrincipal currentUser,
             AuthService authService) =>
@@ -506,7 +533,7 @@ public static class AuthEndpoints
             .RequireAuthorization()
             .RequireRateLimiting("auth");
 
-        app.MapPut("/auth/me/password", async (
+        auth.MapPut("/me/password", async (
             ChangePasswordDto request,
             ClaimsPrincipal currentUser,
             UserService userService) =>
@@ -526,7 +553,7 @@ public static class AuthEndpoints
                 AccountOperationResult.PasswordPolicyFailed => Results.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Password does not meet policy",
-                    detail: "Use at least 8 characters with uppercase, lowercase, and a number. Common or compromised passwords are rejected; retry later if password screening is unavailable."),
+                    detail: "Use at least 8 characters with uppercase, lowercase, and a number. Locally blocked passwords and confirmed breach matches are rejected."),
                 _ => Results.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Authentication required")
             };
         })
@@ -536,7 +563,7 @@ public static class AuthEndpoints
             .RequireAuthorization()
             .RequireRateLimiting("auth");
 
-        app.MapGet("/auth/me", (ClaimsPrincipal user) =>
+        auth.MapGet("/me", (ClaimsPrincipal user) =>
 {
     return Results.Ok(new
     {
@@ -551,9 +578,14 @@ public static class AuthEndpoints
     .WithSummary("Get the current user")
     .RequireAuthorization();
 
-        app.MapGet("/auth/users", async (UserService userService) =>
+        auth.MapGet("/users", async (UserService userService, int page = 1, int pageSize = 20) =>
 {
-    var users = await userService.GetUsersAsync();
+    // Match catalog bounds so an administrator cannot accidentally request an
+    // unbounded user export or force a very expensive database skip.
+    if (page is < 1 or > 1000 || pageSize is < 1 or > 100 || (long)(page - 1) * pageSize > 10_000)
+        return Results.Problem(statusCode: 400, title: "Invalid pagination parameters",
+            detail: "Page must be 1-1000, pageSize 1-100, and offset at most 10000.");
+    var users = await userService.GetUsersAsync(page, pageSize);
 
     return Results.Ok(users);
 })
@@ -562,7 +594,7 @@ public static class AuthEndpoints
     .RequireAuthorization("CanManageUsers");
 
 
- app.MapPut("/auth/users/{id}/role", async (
+ auth.MapPut("/users/{id}/role", async (
     int id,
     UpdateUserRoleDto request,
     UserService userService) =>
@@ -598,11 +630,12 @@ public static class AuthEndpoints
 })
     .WithTags("User administration")
     .WithSummary("Change a user's role")
+    .AddEndpointFilter<RecentAuthenticationFilter>()
     .WithDescription("Assigns the admin or customer role. The last administrator cannot be demoted.")
     .RequireAuthorization("CanManageUsers");
 
 
-app.MapDelete("/auth/users/{id}", async (int id, ClaimsPrincipal currentUser, UserService userService) =>
+auth.MapDelete("/users/{id}", async (int id, ClaimsPrincipal currentUser, UserService userService) =>
 {
     var error = await userService.DeleteUserAsync(id, currentUser);
 
@@ -633,6 +666,7 @@ app.MapDelete("/auth/users/{id}", async (int id, ClaimsPrincipal currentUser, Us
 })
     .WithTags("User administration")
     .WithSummary("Delete a user")
+    .AddEndpointFilter<RecentAuthenticationFilter>()
     .WithDescription("Deletes a user unless that would delete the current account or the last administrator.")
     .RequireAuthorization("CanManageUsers");
 

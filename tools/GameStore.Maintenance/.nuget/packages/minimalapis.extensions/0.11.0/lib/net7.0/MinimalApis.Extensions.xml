@@ -1,0 +1,763 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MinimalApis.Extensions</name>
+    </assembly>
+    <members>
+        <member name="T:MinimalApis.Extensions.Binding.Bind`1">
+            <summary>
+            Represents a type that will use a registered <see cref="T:MinimalApis.Extensions.Binding.IParameterBinder`1"/> to populate a
+            parameter of type <typeparamref name="TValue"/> of a route handler delegate.
+            </summary>
+            <typeparam name="TValue">The parameter type.</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Bind`1.#ctor(`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Binding.Bind`1"/> class.
+            </summary>
+            <param name="modelValue">The value bound.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.Bind`1.Value">
+            <summary>
+            The value bound.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Bind`1.op_Implicit(MinimalApis.Extensions.Binding.Bind{`0})~`0">
+            <summary>
+            Converts the <see cref="T:MinimalApis.Extensions.Binding.Bind`1"/> instance to a <typeparamref name="TValue"/>.
+            </summary>
+            <param name="model">The model.</param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Bind`1.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Binds the specified parameter from <see cref="P:Microsoft.AspNetCore.Http.HttpContext.Request"/>. This method is called by the framework on your behalf
+            when populating parameters of a mapped route handler.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> to bind the parameter from.</param>
+            <param name="parameter">The route handler parameter being bound to.</param>
+            <returns>An instance of <see cref="T:MinimalApis.Extensions.Binding.Bind`1"/>.</returns>
+            <exception cref="T:Microsoft.AspNetCore.Http.BadHttpRequestException">Thrown if the default binding logic results in a status code other than <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/>.</exception>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Bind`1.PopulateMetadata(System.Reflection.ParameterInfo,Microsoft.AspNetCore.Builder.EndpointBuilder)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="parameter"></param>
+            <param name="builder"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.Body`1">
+            <summary>
+            Represents the request body read into the type specified by <typeparamref name="TBody"/>.<br/>
+            Max accepted request body size defaults to <c>84999</c> bytes to prevent allocations to the <see href="https://docs.microsoft.com/en-us/dotnet/standard/garbage-collection/large-object-heap">Large Object Heap</see>.
+            <para>
+            The following types are supported:
+            <list type="bullet">
+            <item><see cref="T:System.String"/>, i.e. <c>Body&lt;string&gt;</c></item>
+            <item><see cref="T:byte[]"/>, i.e. <c>Body&lt;byte[]&gt;</c></item>
+            <item><see cref="T:System.ReadOnlyMemory`1"/>, i.e. <c>Body&lt;ReadOnlyMemory&lt;byte&gt;&gt;</c></item>
+            </list>
+            </para>
+            <example>
+            Use the <see cref="T:System.ComponentModel.DataAnnotations.MaxLengthAttribute"/> to set the size of the request body accepted:
+            <code>
+            app.MapPost("/myapi", ([MaxLength(100)]Body&lt;string&gt; body) => $"Received: {body}");
+            </code>
+            </example>
+            </summary>
+            <typeparam name="TBody">
+            The type to read the request body into.
+            <para>
+            The following types are supported:
+            <list type="bullet">
+            <item><see cref="T:System.String"/>, i.e. <c>Body&lt;string&gt;</c></item>
+            <item><see cref="T:byte[]"/>, i.e. <c>Body&lt;byte[]&gt;</c></item>
+            <item><see cref="T:System.ReadOnlyMemory`1"/>, i.e. <c>Body&lt;ReadOnlyMemory&lt;byte&gt;&gt;</c></item>
+            </list>
+            </para>
+            </typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Body`1.#ctor(`0,Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Binding.Body`1"/> class.
+            </summary>
+            <param name="value">The body value.</param>
+            <param name="httpContext">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/>.</param>
+            <exception cref="T:System.ArgumentException">Thrown when <typeparamref name="TBody"/> is not one of the supported types.</exception>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Body`1.#ctor(`0,Microsoft.AspNetCore.Http.HttpContext,Microsoft.Net.Http.Headers.MediaTypeHeaderValue)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Binding.Body`1"/> class.
+            </summary>
+            <param name="value">The body value.</param>
+            <param name="httpContext">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/>.</param>
+            <param name="contentType">The request body's content type.</param>
+            <exception cref="T:System.ArgumentException">Thrown when <typeparamref name="TBody"/> is not one of the supported types.</exception>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.Body`1.Value">
+            <summary>
+            Gets the body value.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.Body`1.ContentType">
+            <summary>
+            Gets the request body's content type if the <c>Content-Type</c> header was set.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.Body`1.Encoding">
+            <summary>
+            Gets the request body's <see cref="T:System.Text.Encoding"/> if the <c>Content-Type</c> header was set.
+            </summary>
+            <remarks>
+            Note that if <typeparamref name="TBody"/> is <see cref="T:System.String"/> and the request did not specify an encoding via the <c>Content-Type</c>
+            header, the string is created using <see cref="P:System.Text.Encoding.UTF8"/> and this property will be <c>null</c>.
+            </remarks>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Body`1.ToString">
+            <summary>
+            Gets the result of calling <c><see cref="P:MinimalApis.Extensions.Binding.Body`1.Value"/>.ToString()</c>.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Body`1.op_Implicit(MinimalApis.Extensions.Binding.Body{`0})~`0">
+            <summary>
+            Gets <see cref="T:MinimalApis.Extensions.Binding.Body`1"/> as <typeparamref name="TBody"/>.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Body`1.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Binds the specified parameter from <see cref="P:Microsoft.AspNetCore.Http.HttpContext.Request"/>. This method is called by the framework on your behalf
+            when populating parameters of a mapped route handler.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> to bind the parameter from.</param>
+            <param name="parameter">The route handler parameter being bound to.</param>
+            <returns>An instance of <see cref="T:MinimalApis.Extensions.Binding.Body`1"/>.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when <typeparamref name="TBody"/> is not one of the supported types.</exception>
+            <exception cref="T:Microsoft.AspNetCore.Http.BadHttpRequestException">Thrown when the request body exceeds the maximum size allowed.</exception>
+            <exception cref="T:System.OperationCanceledException">Thrown when reading the request body is canceled.</exception>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Body`1.PopulateMetadata(System.Reflection.ParameterInfo,Microsoft.AspNetCore.Builder.EndpointBuilder)">
+            <summary>
+            Populates metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="parameter"></param>
+            <param name="builder"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.DefaultBinder`1">
+            <summary>
+            Provides the ability to invoke the default binding logic implemented by <see cref="T:Microsoft.AspNetCore.Http.RequestDelegateFactory"/>
+            for the current request as if it had been handled by a delegate returned by <see cref="M:Microsoft.AspNetCore.Http.RequestDelegateFactory.Create(System.Delegate,Microsoft.AspNetCore.Http.RequestDelegateFactoryOptions)" />.
+            </summary>
+            <typeparam name="TValue">The type of the value returned by the default binding logic.</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.DefaultBinder`1.GetValueAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Invokes the default binding logic implemented by <see cref="T:Microsoft.AspNetCore.Http.RequestDelegateFactory"/>
+            for the current request as if it had been handled by a delegate returned by <see cref="M:Microsoft.AspNetCore.Http.RequestDelegateFactory.Create(System.Delegate,Microsoft.AspNetCore.Http.RequestDelegateFactoryOptions)" />.
+            </summary>
+            <param name="httpContext">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> for the current request.</param>
+            <param name="parameter">An optional <see cref="T:System.Reflection.ParameterInfo"/> for a parameter of a route handler delegate.</param>
+            <returns>The value and response status code returned.</returns>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.IParameterBinder`1">
+            <summary>
+            Represents a type that can bind parameters of route handler delegates.
+            </summary>
+            <typeparam name="TValue">The <see cref="T:System.Type"/> this binder can perform parameter binding for.</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.IParameterBinder`1.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Returns the bound value for the specified <paramref name="parameter"/>.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> for the current request.</param>
+            <param name="parameter">The <see cref="T:System.Reflection.ParameterInfo"/> for the parameter to bind a value for.</param>
+            <returns>The value to populate the target parameter with.</returns>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.JsonFormFile`1">
+            <summary>
+            Represents a JSON file in a multipart/form-data request (i.e. a form upload).
+            </summary>
+            <typeparam name="TValue">The <see cref="T:System.Type"/> to deserialize the JSON payload into.</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile`1.#ctor(`0,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Creates a new <see cref="T:MinimalApis.Extensions.Binding.JsonFormFile`1"/>.
+            </summary>
+            <param name="value">The value deserialized from the JSON file.</param>
+            <param name="jsonSerializerOptions">The <see cref="T:System.Text.Json.JsonSerializerOptions"/> to use when deserializing.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.JsonFormFile`1.Value">
+            <summary>
+            The value deserialized from the JSON file.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile`1.OpenReadStream">
+            <summary>
+            Opens the underlying file stream from the <see cref="T:Microsoft.AspNetCore.Http.HttpRequest"/>.
+            Note this method should not be called directly when using <see cref="T:MinimalApis.Extensions.Binding.JsonFormFile`1"/>.
+            Access the deserialized value via the <see cref="P:MinimalApis.Extensions.Binding.JsonFormFile`1.Value"/> property instead.
+            </summary>
+            <returns>The <see cref="T:System.IO.Stream"/>.</returns>
+            <exception cref="T:System.InvalidOperationException">Always thrown when called on <see cref="T:MinimalApis.Extensions.Binding.JsonFormFile`1"/>.</exception>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile`1.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Binds the specified parameter from <see cref="P:Microsoft.AspNetCore.Http.HttpContext.Request"/>. This method is called by the framework on your behalf
+            when populating parameters of a mapped route handler.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> to bind the parameter from.</param>
+            <param name="parameter">The route handler parameter being bound to.</param>
+            <returns>An instance of <see cref="T:MinimalApis.Extensions.Binding.JsonFormFile`1"/> if a value for <typeparamref name="TValue"/> can be
+            deserialized from the posted file, otherwise <c>null</c>.</returns>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.JsonFormFile">
+            <summary>
+            Represents a JSON file in a multipart/form-data request (i.e. a form-based file upload).
+            </summary>
+        </member>
+        <member name="F:MinimalApis.Extensions.Binding.JsonFormFile.FormFile">
+            <summary>
+            The <see cref="T:Microsoft.AspNetCore.Http.IFormFile"/>.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile.#ctor(System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Initializes a new instnace of the <see cref="T:MinimalApis.Extensions.Binding.JsonFormFile"/> class.
+            </summary>
+            <param name="jsonSerializerOptions"></param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile.#ctor(Microsoft.AspNetCore.Http.IFormFile,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Creates a new <see cref="T:MinimalApis.Extensions.Binding.JsonFormFile"/>.
+            </summary>
+            <param name="formFile">The <see cref="T:Microsoft.AspNetCore.Http.IFormFile"/>.</param>
+            <param name="jsonSerializerOptions">The <see cref="P:MinimalApis.Extensions.Binding.JsonFormFile.JsonSerializerOptions"/> to use when deserializing the file.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.JsonFormFile.JsonSerializerOptions">
+            <summary>
+            The <see cref="P:MinimalApis.Extensions.Binding.JsonFormFile.JsonSerializerOptions"/> that are used when deserializing the file.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile.OpenReadStream">
+            <summary>
+            Opens the underlying file stream of the uploaded <see cref="F:MinimalApis.Extensions.Binding.JsonFormFile.FormFile"/>.
+            </summary>
+            <returns>The <see cref="T:System.IO.Stream"/>.</returns>
+            <exception cref="T:System.InvalidOperationException">Thrown if called before <see cref="M:MinimalApis.Extensions.Binding.JsonFormFile.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)"/> is called.</exception>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile.DeserializeAsync``1">
+            <summary>
+            Deserializes the contents of the JSON file to an instance of <typeparamref name="TValue"/> using the options
+            from <see cref="P:MinimalApis.Extensions.Binding.JsonFormFile.JsonSerializerOptions"/>.
+            </summary>
+            <typeparam name="TValue">The type to deserialize the JSON file to.</typeparam>
+            <returns>An instance of <typeparamref name="TValue"/> if the contents can be deserialized, otherwise <c>null</c>.</returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile.DeserializeAsync``1(System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Deserializes the contents of the JSON file to an instance of <typeparamref name="TValue"/> using the provided
+            <paramref name="jsonOptions"/>.
+            </summary>
+            <typeparam name="TValue">The type to deserialize the JSON file to.</typeparam>
+            <param name="jsonOptions">The options to use when deserializing the JSON file.</param>
+            <returns>An instance of <typeparamref name="TValue"/> if the contents can be deserialized, otherwise <c>null</c>.</returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Binds the specified parameter from <see cref="P:Microsoft.AspNetCore.Http.HttpContext.Request"/>. This method is called by the framework on your behalf
+            when populating parameters of a mapped route handler.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> to bind the parameter from.</param>
+            <param name="parameter">The route handler parameter being bound to.</param>
+            <returns>
+            An instance of <see cref="T:MinimalApis.Extensions.Binding.JsonFormFile"/> if the request contains a form file field with the same name as the provided
+            <see cref="P:System.Reflection.ParameterInfo.Name"/>, otherwise <c>null</c>.
+            </returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile.PopulateMetadata(System.Reflection.ParameterInfo,Microsoft.AspNetCore.Builder.EndpointBuilder)">
+            <summary>
+            Populates metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="parameter"></param>
+            <param name="builder"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.ModelBinder`1">
+            <summary>
+            <para>A bridge to support MVC's model binders in minimal APIs. Specify <see cref="T:MinimalApis.Extensions.Binding.ModelBinder`1"/> as a paramter type
+            of your method to trigger the model binding system.
+            </para>
+            <para>
+            This requires registering the model binding services by calling
+            <see cref="M:Microsoft.Extensions.DependencyInjection.MvcCoreServiceCollectionExtensions.AddMvcCore(Microsoft.Extensions.DependencyInjection.IServiceCollection)"/> or <see cref="M:Microsoft.Extensions.DependencyInjection.MvcServiceCollectionExtensions.AddControllers(Microsoft.Extensions.DependencyInjection.IServiceCollection)"/>.
+            </para>
+            </summary>
+            <typeparam name="TValue">The type to model bind</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.ModelBinder`1.#ctor(`0,Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary)">
+            <summary>
+            Creates a new <see cref="T:MinimalApis.Extensions.Binding.ModelBinder`1"/>.
+            </summary>
+            <param name="model">The model.</param>
+            <param name="modelState">The <see cref="T:Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary"/>.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.ModelBinder`1.Model">
+            <summary>
+            The model being bound.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.ModelBinder`1.ModelState">
+            <summary>
+            The validation information.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.ModelBinder`1.Deconstruct(`0@,Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary@)">
+            <summary>
+            Supports deconstructing the <see cref="P:MinimalApis.Extensions.Binding.ModelBinder`1.Model"/> and <see cref="P:MinimalApis.Extensions.Binding.ModelBinder`1.ModelState"/>.
+            </summary>
+            <param name="model">The <see cref="P:MinimalApis.Extensions.Binding.ModelBinder`1.Model"/>.</param>
+            <param name="modelState">The <see cref="P:MinimalApis.Extensions.Binding.ModelBinder`1.ModelState"/>.</param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.ModelBinder`1.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Binds the specified parameter from <see cref="P:Microsoft.AspNetCore.Http.HttpContext.Request"/>. This method is called by the framework on your behalf
+            when populating parameters of a mapped route handler.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> to bind the parameter from.</param>
+            <param name="parameter">The route handler parameter being bound to.</param>
+            <returns>An instance of <see cref="T:MinimalApis.Extensions.Binding.ModelBinder`1"/>.</returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.ModelBinder`1.PopulateMetadata(System.Reflection.ParameterInfo,Microsoft.AspNetCore.Builder.EndpointBuilder)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="parameter"></param>
+            <param name="builder"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.SuppressBinding`1">
+            <summary>
+            Suprresses the default binding logic of RequestDelegateFactory when accepted as a parameter to a route handler.
+            </summary>
+            <typeparam name="TValue">The <see cref="T:System.Type"/> of the parameter to suppress binding for.</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.SuppressBinding`1.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Binding.SuppressBinding`1"/> class.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.SuppressBinding`1.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Binds the specified parameter from <see cref="P:Microsoft.AspNetCore.Http.HttpContext.Request"/>. This method is called by the framework on your behalf
+            when populating parameters of a mapped route handler.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> to bind the parameter from.</param>
+            <param name="parameter">The route handler parameter being bound to.</param>
+            <returns>An instance of <see cref="T:MinimalApis.Extensions.Binding.SuppressBinding`1"/>.</returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.SuppressBinding`1.PopulateMetadata(System.Reflection.ParameterInfo,Microsoft.AspNetCore.Builder.EndpointBuilder)">
+            <summary>
+            Populates metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="parameter"></param>
+            <param name="builder"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1">
+            <summary>
+            Suprresses the default response logic of <see cref="T:Microsoft.AspNetCore.Http.RequestDelegateFactory"/> when accepted as a parameter to a route handler.
+            Default binding of the <typeparamref name="TValue"/> will still occur.
+            </summary>
+            <typeparam name="TValue">The <see cref="T:System.Type"/> of the parameter.</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.#ctor(`0,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1"/>.
+            </summary>
+            <param name="value"></param>
+            <param name="statusCode">The type of the parameter that the default response is being suppressed for.</param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.#ctor(System.Exception)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1"/> class using the provided <see cref="P:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.Exception"/>.
+            </summary>
+            <param name="exception">The <see cref="P:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.Exception"/>.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.Value">
+            <summary>
+            The value bound by <see cref="T:Microsoft.AspNetCore.Http.RequestDelegateFactory"/>.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.StatusCode">
+            <summary>
+            The status code that <see cref="T:Microsoft.AspNetCore.Http.RequestDelegateFactory"/> would have returned.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.Exception">
+            <summary>
+            The exception that occurred if binding failed.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Binds the specified parameter from <see cref="P:Microsoft.AspNetCore.Http.HttpContext.Request"/>. This method is called by the framework on your behalf
+            when populating parameters of a mapped route handler.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> to bind the parameter from.</param>
+            <param name="parameter">The route handler parameter being bound to.</param>
+            <returns>An instance of <see cref="T:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1"/>.</returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.PopulateMetadata(System.Reflection.ParameterInfo,Microsoft.AspNetCore.Builder.EndpointBuilder)">
+            <summary>
+            Populates metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="parameter"></param>
+            <param name="builder"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.Validated`1">
+            <summary>
+            Represents a validated object of the type specified by <typeparamref name="TValue"/> as a parameter to an ASP.NET Core route handler delegate.
+            </summary>
+            <typeparam name="TValue">The type of the object being validated.</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Validated`1.#ctor(`0,System.String[],System.Nullable{System.Int32})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Binding.Validated`1"/> class.
+            </summary>
+            <param name="value">The object to validate.</param>
+            <param name="initialErrors">Any initial object-level errors to populate the <see cref="P:MinimalApis.Extensions.Binding.Validated`1.Errors"/> collection with.</param>
+            <param name="defaultBindingResultStatusCode">The <see cref="P:Microsoft.AspNetCore.Http.HttpResponse.StatusCode"/> set by the default binder, if any.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.Validated`1.Value">
+            <summary>
+            The validated object.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.Validated`1.IsValid">
+            <summary>
+            Indicates whether the object is valid or not. <c>true</c> if the object is valid; <c>false</c> if it is not.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.Validated`1.Errors">
+            <summary>
+            A dictionary that contains details of each failed validation.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.Validated`1.DefaultBindingResultStatusCode">
+            <summary>
+            Gets the response status code set by the default binding logic if there were any binding issues. This value will
+            be <c>null</c> if the default binding logic did not detect an issue.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Validated`1.Deconstruct(`0@,System.Boolean@)">
+            <summary>
+            Deconstructs the <see cref="P:MinimalApis.Extensions.Binding.Validated`1.Value"/> and <see cref="P:MinimalApis.Extensions.Binding.Validated`1.IsValid"/> properties.
+            </summary>
+            <param name="value">The value of <see cref="P:MinimalApis.Extensions.Binding.Validated`1.Value"/>.</param>
+            <param name="isValid">The value of <see cref="P:MinimalApis.Extensions.Binding.Validated`1.IsValid"/>.</param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Validated`1.Deconstruct(`0@,System.Boolean@,System.Collections.Generic.IDictionary{System.String,System.String[]}@)">
+            <summary>
+            Deconstructs the <see cref="P:MinimalApis.Extensions.Binding.Validated`1.Value"/>, <see cref="P:MinimalApis.Extensions.Binding.Validated`1.IsValid"/>, and <see cref="P:MinimalApis.Extensions.Binding.Validated`1.Errors"/> properties.
+            </summary>
+            <param name="value">The value of <see cref="P:MinimalApis.Extensions.Binding.Validated`1.Value"/>.</param>
+            <param name="isValid">The value of <see cref="P:MinimalApis.Extensions.Binding.Validated`1.IsValid"/>.</param>
+            <param name="errors">The value of <see cref="P:MinimalApis.Extensions.Binding.Validated`1.Errors"/>.</param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Validated`1.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Binds the specified parameter from <see cref="P:Microsoft.AspNetCore.Http.HttpContext.Request"/>. This method is called by the framework on your behalf
+            when populating parameters of a mapped route handler.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> to bind the parameter from.</param>
+            <param name="parameter">The route handler parameter being bound to.</param>
+            <returns>An instance of <see cref="T:MinimalApis.Extensions.Binding.Validated`1"/> if one is deserialized from the request, otherwise <c>null</c>.</returns>
+            <exception cref="T:Microsoft.AspNetCore.Http.BadHttpRequestException">Thrown when the request Content-Type header is not a recognized JSON media type.</exception>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Validated`1.PopulateMetadata(System.Reflection.ParameterInfo,Microsoft.AspNetCore.Builder.EndpointBuilder)">
+            <summary>
+            Populates metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="parameter"></param>
+            <param name="builder"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Filters.ValidateAttribute">
+            <summary>
+            Indicates a route handler delegate parameter should be validated before the route handler is invoked.
+            </summary>
+            <remarks>
+            Should be used in conjunction with <see cref="M:Microsoft.AspNetCore.Http.ValidationFilterRouteHandlerBuilderExtensions.WithParameterValidation``1(``0,System.Boolean,System.Int32)"/>
+            to enable route handler delegate parameter validation.
+            </remarks>
+        </member>
+        <member name="T:MinimalApis.Extensions.Results.FromFile">
+            <summary>
+            Represents an <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that uses the content of a file as the response body.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.FromFile.#ctor(System.String,System.String,System.Nullable{System.Int32},Microsoft.Extensions.FileProviders.IFileProvider,Microsoft.AspNetCore.StaticFiles.IContentTypeProvider)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Results.FromFile"/> class.
+            </summary>
+            <param name="filePath">The path of the file to use as the reponse body.</param>
+            <param name="contentType">An optional content type for the response body. Defaults to a content type derived from the file name extension.</param>
+            <param name="statusCode">An optional status code to return. Defaults to <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/>.</param>
+            <param name="fileProvider">An optional <see cref="T:Microsoft.Extensions.FileProviders.IFileProvider"/> to retrieve the file from. Defaults to <see cref="P:Microsoft.AspNetCore.Hosting.IHostingEnvironment.ContentRootFileProvider"/>.</param>
+            <param name="contentTypeProvider">An option <see cref="T:Microsoft.AspNetCore.StaticFiles.IContentTypeProvider"/> to use to lookup the content type from the file name extension. Defaults to <see cref="T:Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider"/>.</param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.FromFile.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            Writes an HTTP response reflecting the result.
+            </summary>
+            <param name="httpContext">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> for the current request.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> that represents the asynchronous execute operation.</returns>
+        </member>
+        <member name="T:MinimalApis.Extensions.Results.Gone">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that returns a Gone (410) status code.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Gone.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Results.Gone"/> class.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.Gone.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status410Gone"/>
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Gone.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Gone.PopulateMetadata(System.Reflection.MethodInfo,Microsoft.AspNetCore.Builder.EndpointBuilder)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="builder"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Results.Gone`1">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with a Gone (410) status code.
+            </summary>
+            <typeparam name="TValue">The type of value object that will be JSON serialized to the response body.</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Gone`1.#ctor(`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Results.Gone`1"/> class with the values
+            provided.
+            </summary>
+            <param name="value">The value to format in the entity body.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.Gone`1.Value">
+            <summary>
+            Gets the object result.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.Gone`1.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status410Gone"/>
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Gone`1.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Gone`1.PopulateMetadata(System.Reflection.MethodInfo,Microsoft.AspNetCore.Builder.EndpointBuilder)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="builder"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Results.Html">
+            <summary>
+            Represents an <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that returns HTML content in the response body.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Html.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Results.Html"/> class.
+            </summary>
+            <param name="html">The HTML to return in the response body.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.Html.StatusCode">
+            <summary>
+            Gets the status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/>
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.Html.ContentType">
+            <summary>
+            Gets the content type: <c>text/html</c>
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.Html.Content">
+            <summary>
+            Gets the HTML content to render in the response body.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Html.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Html.PopulateMetadata(System.Reflection.MethodInfo,Microsoft.AspNetCore.Builder.EndpointBuilder)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="builder"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Results.PlainText">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that returns an Ok (200) status code response with a plain text response body.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.PlainText.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Results.PlainText"/> class.
+            </summary>
+            <param name="text">The text to write to the response body.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.PlainText.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/>
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.PlainText.ContentType">
+            <summary>
+            Gets the value that will be set on the <c>Content-Type</c> header.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.PlainText.Text">
+            <summary>
+            Gets the text that will be written to the response.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.PlainText.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.PlainText.PopulateMetadata(System.Reflection.MethodInfo,Microsoft.AspNetCore.Builder.EndpointBuilder)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="builder"></param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.ResponseContentTypeHelper.ResolveContentTypeAndEncoding(System.String,System.String,System.ValueTuple{System.String,System.Text.Encoding},System.Func{System.String,System.Text.Encoding},System.String@,System.Text.Encoding@)">
+            <summary>
+            Gets the content type and encoding that need to be used for the response.
+            The priority for selecting the content type is:
+            1. ContentType property set on the action result
+            2. <see cref="P:Microsoft.AspNetCore.Http.HttpResponse.ContentType"/> property set on <see cref="T:Microsoft.AspNetCore.Http.HttpResponse"/>
+            3. Default content type set on the action result
+            </summary>
+            <remarks>
+            The user supplied content type is not modified and is used as is. For example, if user
+            sets the content type to be "text/plain" without any encoding, then the default content type's
+            encoding is used to write the response and the ContentType header is set to be "text/plain" without any
+            "charset" information.
+            </remarks>
+        </member>
+        <member name="T:MinimalApis.Extensions.Results.ResultExtensions">
+            <summary>
+            Contains extension methods for creating typed <see cref="T:Microsoft.AspNetCore.Http.IResult"/> objects to return from Minimal APIs.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.ResultExtensions.PlainText(Microsoft.AspNetCore.Http.IResultExtensions,System.String)">
+            <summary>
+            Returns a <see cref="T:MinimalApis.Extensions.Results.PlainText"/> <see cref="T:Microsoft.AspNetCore.Http.IResult"/> with <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/>.
+            </summary>
+            <param name="resultExtensions">The <see cref="T:Microsoft.AspNetCore.Http.IResultExtensions"/>.</param>
+            <param name="text">The text to return in the response body.</param>
+            <returns>The <see cref="T:MinimalApis.Extensions.Results.PlainText"/> instance.</returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.ResultExtensions.UnsupportedMediaType(Microsoft.AspNetCore.Http.IResultExtensions)">
+            <summary>
+            Returns an <see cref="T:MinimalApis.Extensions.Results.UnsupportedMediaType"/> <see cref="T:Microsoft.AspNetCore.Http.IResult"/> with <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status415UnsupportedMediaType"/>.
+            </summary>
+            <param name="resultExtensions">The <see cref="T:Microsoft.AspNetCore.Http.IResultExtensions"/>.</param>
+            <returns>The <see cref="T:MinimalApis.Extensions.Results.UnsupportedMediaType"/> instance.</returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.ResultExtensions.Html(Microsoft.AspNetCore.Http.IResultExtensions,System.String)">
+            <summary>
+            Returns an <see cref="T:MinimalApis.Extensions.Results.Html"/> <see cref="T:Microsoft.AspNetCore.Http.IResult"/> with <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/> and an HTML response body.
+            </summary>
+            <param name="resultExtensions">The <see cref="T:Microsoft.AspNetCore.Http.IResultExtensions"/>.</param>
+            <param name="html">The HTML content to write to the response body.</param>
+            <returns>The <see cref="T:MinimalApis.Extensions.Results.Html"/> instance.</returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.ResultExtensions.FromFile(Microsoft.AspNetCore.Http.IResultExtensions,System.String,System.String,System.Nullable{System.Int32})">
+            <summary>
+            Returns an <see cref="T:MinimalApis.Extensions.Results.FromFile"/> <see cref="T:Microsoft.AspNetCore.Http.IResult"/> with the contents of the file as the response body.
+            </summary>
+            <param name="resultExtensions">The <see cref="T:Microsoft.AspNetCore.Http.IResultExtensions"/>.</param>
+            <param name="filePath">The path of the file to use as the reponse body.</param>
+            <param name="contentType">An optional content type for the response body. Defaults to a content type derived from the file name extension.</param>
+            <param name="statusCode">An optional status code to return. Defaults to <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/>.</param>
+            <returns>The <see cref="T:MinimalApis.Extensions.Results.FromFile"/> instance.</returns>
+        </member>
+        <member name="T:MinimalApis.Extensions.Results.UnsupportedMediaType">
+            <summary>
+            Represents an <see cref="T:Microsoft.AspNetCore.Http.IResult"/> for a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status415UnsupportedMediaType"/> response.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.UnsupportedMediaType.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Results.UnsupportedMediaType"/> class.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.UnsupportedMediaType.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status415UnsupportedMediaType"/>
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.UnsupportedMediaType.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.UnsupportedMediaType.PopulateMetadata(System.Reflection.MethodInfo,Microsoft.AspNetCore.Builder.EndpointBuilder)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="builder"></param>
+        </member>
+        <member name="T:Microsoft.Extensions.DependencyInjection.MinimalApisBindingExtensionsServiceCollectionExtensions">
+            <summary>
+            Provides extension methods for adding binding-related Minimal APIs extensions to the application <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.MinimalApisBindingExtensionsServiceCollectionExtensions.AddParameterBinder``2(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Registers a <see cref="T:System.Type"/> to use as a parameter binder for route handler delegates.
+            </summary>
+            <typeparam name="TBinder">The <see cref="T:System.Type"/> to register as a parameter binder.</typeparam>
+            <typeparam name="TModel">The parameter type to register the binder for.</typeparam>
+            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.</param>
+            <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.</returns>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.ValidationFilterRouteHandlerBuilderExtensions">
+            <summary>
+            Validation extension methods for <see cref="T:Microsoft.AspNetCore.Builder.RouteHandlerBuilder"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.ValidationFilterRouteHandlerBuilderExtensions.WithParameterValidation``1(``0,System.Boolean,System.Int32)">
+            <summary>
+            Adds a filter that validates route handler parameters using <see cref="T:MiniValidation.MiniValidator"/>.
+            </summary>
+            <remarks>
+            The filter will not be added if the route handler does not have any validatable parameters.
+            </remarks>
+            <param name="endpoint">The <see cref="T:Microsoft.AspNetCore.Builder.IEndpointConventionBuilder"/>.</param>
+            <param name="requireParameterAttribute">If <c>true</c>, only parameters decorated with <see cref="T:MinimalApis.Extensions.Filters.ValidateAttribute"/> will be validated. Default is <c>false</c>.</param>
+            <param name="statusCode">The status code to return on validation failure. Defaults to <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest"/>.</param>
+            <returns></returns>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.ProducesResponseTypeMetadata.Type">
+            <summary>
+            Gets or sets the type of the value returned by an action.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.ProducesResponseTypeMetadata.StatusCode">
+            <summary>
+            Gets or sets the HTTP status code of the response.
+            </summary>
+        </member>
+    </members>
+</doc>

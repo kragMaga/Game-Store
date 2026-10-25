@@ -1,4 +1,5 @@
 using GameStore.Api.Entities;
+using GameStore.Api.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,11 +12,10 @@ public static class DbInitializer
         string adminUsername,
         string adminEmail,
         string adminPassword,
-        IPasswordHasher<User> passwordHasher)
+        UserManager<User> userManager)
     {
         var username = adminUsername.Trim();
-        if (username.Length is < 5 or > 20 ||
-            !username.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_' or '.'))
+        if (!UsernameRules.IsValid(username))
         {
             throw new InvalidOperationException("Bootstrap admin username must be 5-20 ASCII letters, digits, periods, underscores, or hyphens.");
         }
@@ -26,7 +26,9 @@ public static class DbInitializer
             throw new InvalidOperationException("Bootstrap admin email must be a valid email address.");
         }
 
-        // Check if an admin already exists
+        // Serialize first-admin creation and run the same Identity/password validators
+        // used by registration. Direct hashing would bypass strength and breach checks.
+        await using var transaction = await SecurityTransaction.BeginAsync(dbContext);
         var adminExists = await dbContext.Users.AnyAsync(user => user.Role == "admin");
 
         if (adminExists)
@@ -48,10 +50,10 @@ public static class DbInitializer
             EmailConfirmed = true
         };
 
-        admin.PasswordHash = passwordHasher.HashPassword(admin, adminPassword);
-
-        dbContext.Users.Add(admin);
-
-        await dbContext.SaveChangesAsync();
+        var result = await userManager.CreateAsync(admin, adminPassword);
+        if (!result.Succeeded)
+            throw new InvalidOperationException("Bootstrap admin validation failed. Identity error codes: " +
+                string.Join(", ", result.Errors.Select(error => error.Code).Distinct()));
+        await transaction.CommitAsync();
     }
 }

@@ -1,0 +1,2871 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MinimalApis.Extensions</name>
+    </assembly>
+    <members>
+        <member name="T:MinimalApis.Extensions.Binding.Bind`1">
+            <summary>
+            Represents a type that will use a registered <see cref="T:MinimalApis.Extensions.Binding.IParameterBinder`1"/> to populate a
+            parameter of type <typeparamref name="TValue"/> of a route handler delegate.
+            </summary>
+            <typeparam name="TValue">The parameter type.</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Bind`1.#ctor(`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Binding.Bind`1"/> class.
+            </summary>
+            <param name="modelValue">The value bound.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.Bind`1.Value">
+            <summary>
+            The value bound.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Bind`1.op_Implicit(MinimalApis.Extensions.Binding.Bind{`0})~`0">
+            <summary>
+            Converts the <see cref="T:MinimalApis.Extensions.Binding.Bind`1"/> instance to a <typeparamref name="TValue"/>.
+            </summary>
+            <param name="model">The model.</param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Bind`1.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Binds the specified parameter from <see cref="P:Microsoft.AspNetCore.Http.HttpContext.Request"/>. This method is called by the framework on your behalf
+            when populating parameters of a mapped route handler.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> to bind the parameter from.</param>
+            <param name="parameter">The route handler parameter being bound to.</param>
+            <returns>An instance of <see cref="T:MinimalApis.Extensions.Binding.Bind`1"/>.</returns>
+            <exception cref="T:Microsoft.AspNetCore.Http.BadHttpRequestException">Thrown if the default binding logic results in a status code other than <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/>.</exception>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Bind`1.PopulateMetadata(System.Reflection.ParameterInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="parameter"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.Body`1">
+            <summary>
+            Represents the request body read into the type specified by <typeparamref name="TBody"/>.<br/>
+            Max accepted request body size defaults to <c>84999</c> bytes to prevent allocations to the <see href="https://docs.microsoft.com/en-us/dotnet/standard/garbage-collection/large-object-heap">Large Object Heap</see>.
+            <para>
+            The following types are supported:
+            <list type="bullet">
+            <item><see cref="T:System.String"/>, i.e. <c>Body&lt;string&gt;</c></item>
+            <item><see cref="T:byte[]"/>, i.e. <c>Body&lt;byte[]&gt;</c></item>
+            <item><see cref="T:System.ReadOnlyMemory`1"/>, i.e. <c>Body&lt;ReadOnlyMemory&lt;byte&gt;&gt;</c></item>
+            </list>
+            </para>
+            <example>
+            Use the <see cref="T:System.ComponentModel.DataAnnotations.MaxLengthAttribute"/> to set the size of the request body accepted:
+            <code>
+            app.MapPost("/myapi", ([MaxLength(100)]Body&lt;string&gt; body) => $"Received: {body}");
+            </code>
+            </example>
+            </summary>
+            <typeparam name="TBody">
+            The type to read the request body into.
+            <para>
+            The following types are supported:
+            <list type="bullet">
+            <item><see cref="T:System.String"/>, i.e. <c>Body&lt;string&gt;</c></item>
+            <item><see cref="T:byte[]"/>, i.e. <c>Body&lt;byte[]&gt;</c></item>
+            <item><see cref="T:System.ReadOnlyMemory`1"/>, i.e. <c>Body&lt;ReadOnlyMemory&lt;byte&gt;&gt;</c></item>
+            </list>
+            </para>
+            </typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Body`1.#ctor(`0,Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Binding.Body`1"/> class.
+            </summary>
+            <param name="value">The body value.</param>
+            <param name="httpContext">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/>.</param>
+            <exception cref="T:System.ArgumentException">Thrown when <typeparamref name="TBody"/> is not one of the supported types.</exception>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Body`1.#ctor(`0,Microsoft.AspNetCore.Http.HttpContext,Microsoft.Net.Http.Headers.MediaTypeHeaderValue)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Binding.Body`1"/> class.
+            </summary>
+            <param name="value">The body value.</param>
+            <param name="httpContext">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/>.</param>
+            <param name="contentType">The request body's content type.</param>
+            <exception cref="T:System.ArgumentException">Thrown when <typeparamref name="TBody"/> is not one of the supported types.</exception>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.Body`1.Value">
+            <summary>
+            Gets the body value.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.Body`1.ContentType">
+            <summary>
+            Gets the request body's content type if the <c>Content-Type</c> header was set.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.Body`1.Encoding">
+            <summary>
+            Gets the request body's <see cref="T:System.Text.Encoding"/> if the <c>Content-Type</c> header was set.
+            </summary>
+            <remarks>
+            Note that if <typeparamref name="TBody"/> is <see cref="T:System.String"/> and the request did not specify an encoding via the <c>Content-Type</c>
+            header, the string is created using <see cref="P:System.Text.Encoding.UTF8"/> and this property will be <c>null</c>.
+            </remarks>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Body`1.ToString">
+            <summary>
+            Gets the result of calling <c><see cref="P:MinimalApis.Extensions.Binding.Body`1.Value"/>.ToString()</c>.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Body`1.op_Implicit(MinimalApis.Extensions.Binding.Body{`0})~`0">
+            <summary>
+            Gets <see cref="T:MinimalApis.Extensions.Binding.Body`1"/> as <typeparamref name="TBody"/>.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Body`1.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Binds the specified parameter from <see cref="P:Microsoft.AspNetCore.Http.HttpContext.Request"/>. This method is called by the framework on your behalf
+            when populating parameters of a mapped route handler.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> to bind the parameter from.</param>
+            <param name="parameter">The route handler parameter being bound to.</param>
+            <returns>An instance of <see cref="T:MinimalApis.Extensions.Binding.Body`1"/>.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when <typeparamref name="TBody"/> is not one of the supported types.</exception>
+            <exception cref="T:Microsoft.AspNetCore.Http.BadHttpRequestException">Thrown when the request body exceeds the maximum size allowed.</exception>
+            <exception cref="T:System.OperationCanceledException">Thrown when reading the request body is canceled.</exception>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Body`1.PopulateMetadata(System.Reflection.ParameterInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="parameter"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.DefaultBinder`1">
+            <summary>
+            Provides the ability to invoke the default binding logic implemented by <see cref="T:Microsoft.AspNetCore.Http.RequestDelegateFactory"/>
+            for the current request as if it had been handled by a delegate returned by <see cref="M:Microsoft.AspNetCore.Http.RequestDelegateFactory.Create(System.Delegate,Microsoft.AspNetCore.Http.RequestDelegateFactoryOptions)" />.
+            </summary>
+            <typeparam name="TValue">The type of the value returned by the default binding logic.</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.DefaultBinder`1.GetValueAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Invokes the default binding logic implemented by <see cref="T:Microsoft.AspNetCore.Http.RequestDelegateFactory"/>
+            for the current request as if it had been handled by a delegate returned by <see cref="M:Microsoft.AspNetCore.Http.RequestDelegateFactory.Create(System.Delegate,Microsoft.AspNetCore.Http.RequestDelegateFactoryOptions)" />.
+            </summary>
+            <param name="httpContext">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> for the current request.</param>
+            <param name="parameter">An optional <see cref="T:System.Reflection.ParameterInfo"/> for a parameter of a route handler delegate.</param>
+            <returns>The value and response status code returned.</returns>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.IParameterBinder`1">
+            <summary>
+            Represents a type that can bind parameters of route handler delegates.
+            </summary>
+            <typeparam name="TValue">The <see cref="T:System.Type"/> this binder can perform parameter binding for.</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.IParameterBinder`1.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Returns the bound value for the specified <paramref name="parameter"/>.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> for the current request.</param>
+            <param name="parameter">The <see cref="T:System.Reflection.ParameterInfo"/> for the parameter to bind a value for.</param>
+            <returns>The value to populate the target parameter with.</returns>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.JsonFormFile`1">
+            <summary>
+            Represents a JSON file in a multipart/form-data request (i.e. a form upload).
+            </summary>
+            <typeparam name="TValue">The <see cref="T:System.Type"/> to deserialize the JSON payload into.</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile`1.#ctor(`0,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Creates a new <see cref="T:MinimalApis.Extensions.Binding.JsonFormFile`1"/>.
+            </summary>
+            <param name="value">The value deserialized from the JSON file.</param>
+            <param name="jsonSerializerOptions">The <see cref="T:System.Text.Json.JsonSerializerOptions"/> to use when deserializing.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.JsonFormFile`1.Value">
+            <summary>
+            The value deserialized from the JSON file.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile`1.OpenReadStream">
+            <summary>
+            Opens the underlying file stream from the <see cref="T:Microsoft.AspNetCore.Http.HttpRequest"/>.
+            Note this method should not be called directly when using <see cref="T:MinimalApis.Extensions.Binding.JsonFormFile`1"/>.
+            Access the deserialized value via the <see cref="P:MinimalApis.Extensions.Binding.JsonFormFile`1.Value"/> property instead.
+            </summary>
+            <returns>The <see cref="T:System.IO.Stream"/>.</returns>
+            <exception cref="T:System.InvalidOperationException">Always thrown when called on <see cref="T:MinimalApis.Extensions.Binding.JsonFormFile`1"/>.</exception>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile`1.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Binds the specified parameter from <see cref="P:Microsoft.AspNetCore.Http.HttpContext.Request"/>. This method is called by the framework on your behalf
+            when populating parameters of a mapped route handler.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> to bind the parameter from.</param>
+            <param name="parameter">The route handler parameter being bound to.</param>
+            <returns>An instance of <see cref="T:MinimalApis.Extensions.Binding.JsonFormFile`1"/> if a value for <typeparamref name="TValue"/> can be
+            deserialized from the posted file, otherwise <c>null</c>.</returns>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.JsonFormFile">
+            <summary>
+            Represents a JSON file in a multipart/form-data request (i.e. a form-based file upload).
+            </summary>
+        </member>
+        <member name="F:MinimalApis.Extensions.Binding.JsonFormFile.FormFile">
+            <summary>
+            The <see cref="T:Microsoft.AspNetCore.Http.IFormFile"/>.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile.#ctor(System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Initializes a new instnace of the <see cref="T:MinimalApis.Extensions.Binding.JsonFormFile"/> class.
+            </summary>
+            <param name="jsonSerializerOptions"></param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile.#ctor(Microsoft.AspNetCore.Http.IFormFile,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Creates a new <see cref="T:MinimalApis.Extensions.Binding.JsonFormFile"/>.
+            </summary>
+            <param name="formFile">The <see cref="T:Microsoft.AspNetCore.Http.IFormFile"/>.</param>
+            <param name="jsonSerializerOptions">The <see cref="P:MinimalApis.Extensions.Binding.JsonFormFile.JsonSerializerOptions"/> to use when deserializing the file.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.JsonFormFile.JsonSerializerOptions">
+            <summary>
+            The <see cref="P:MinimalApis.Extensions.Binding.JsonFormFile.JsonSerializerOptions"/> that are used when deserializing the file.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile.OpenReadStream">
+            <summary>
+            Opens the underlying file stream of the uploaded <see cref="F:MinimalApis.Extensions.Binding.JsonFormFile.FormFile"/>.
+            </summary>
+            <returns>The <see cref="T:System.IO.Stream"/>.</returns>
+            <exception cref="T:System.InvalidOperationException">Thrown if called before <see cref="M:MinimalApis.Extensions.Binding.JsonFormFile.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)"/> is called.</exception>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile.DeserializeAsync``1">
+            <summary>
+            Deserializes the contents of the JSON file to an instance of <typeparamref name="TValue"/> using the options
+            from <see cref="P:MinimalApis.Extensions.Binding.JsonFormFile.JsonSerializerOptions"/>.
+            </summary>
+            <typeparam name="TValue">The type to deserialize the JSON file to.</typeparam>
+            <returns>An instance of <typeparamref name="TValue"/> if the contents can be deserialized, otherwise <c>null</c>.</returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile.DeserializeAsync``1(System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Deserializes the contents of the JSON file to an instance of <typeparamref name="TValue"/> using the provided
+            <paramref name="jsonOptions"/>.
+            </summary>
+            <typeparam name="TValue">The type to deserialize the JSON file to.</typeparam>
+            <param name="jsonOptions">The options to use when deserializing the JSON file.</param>
+            <returns>An instance of <typeparamref name="TValue"/> if the contents can be deserialized, otherwise <c>null</c>.</returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Binds the specified parameter from <see cref="P:Microsoft.AspNetCore.Http.HttpContext.Request"/>. This method is called by the framework on your behalf
+            when populating parameters of a mapped route handler.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> to bind the parameter from.</param>
+            <param name="parameter">The route handler parameter being bound to.</param>
+            <returns>
+            An instance of <see cref="T:MinimalApis.Extensions.Binding.JsonFormFile"/> if the request contains a form file field with the same name as the provided
+            <see cref="P:System.Reflection.ParameterInfo.Name"/>, otherwise <c>null</c>.
+            </returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.JsonFormFile.PopulateMetadata(System.Reflection.ParameterInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="parameter"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.ModelBinder`1">
+            <summary>
+            <para>A bridge to support MVC's model binders in minimal APIs. Specify <see cref="T:MinimalApis.Extensions.Binding.ModelBinder`1"/> as a paramter type
+            of your method to trigger the model binding system.
+            </para>
+            <para>
+            This requires registering the model binding services by calling
+            <see cref="M:Microsoft.Extensions.DependencyInjection.MvcCoreServiceCollectionExtensions.AddMvcCore(Microsoft.Extensions.DependencyInjection.IServiceCollection)"/> or <see cref="M:Microsoft.Extensions.DependencyInjection.MvcServiceCollectionExtensions.AddControllers(Microsoft.Extensions.DependencyInjection.IServiceCollection)"/>.
+            </para>
+            </summary>
+            <typeparam name="TValue">The type to model bind</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.ModelBinder`1.#ctor(`0,Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary)">
+            <summary>
+            Creates a new <see cref="T:MinimalApis.Extensions.Binding.ModelBinder`1"/>.
+            </summary>
+            <param name="model">The model.</param>
+            <param name="modelState">The <see cref="T:Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary"/>.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.ModelBinder`1.Model">
+            <summary>
+            The model being bound.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.ModelBinder`1.ModelState">
+            <summary>
+            The validation information.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.ModelBinder`1.Deconstruct(`0@,Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary@)">
+            <summary>
+            Supports deconstructing the <see cref="P:MinimalApis.Extensions.Binding.ModelBinder`1.Model"/> and <see cref="P:MinimalApis.Extensions.Binding.ModelBinder`1.ModelState"/>.
+            </summary>
+            <param name="model">The <see cref="P:MinimalApis.Extensions.Binding.ModelBinder`1.Model"/>.</param>
+            <param name="modelState">The <see cref="P:MinimalApis.Extensions.Binding.ModelBinder`1.ModelState"/>.</param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.ModelBinder`1.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Binds the specified parameter from <see cref="P:Microsoft.AspNetCore.Http.HttpContext.Request"/>. This method is called by the framework on your behalf
+            when populating parameters of a mapped route handler.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> to bind the parameter from.</param>
+            <param name="parameter">The route handler parameter being bound to.</param>
+            <returns>An instance of <see cref="T:MinimalApis.Extensions.Binding.ModelBinder`1"/>.</returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.ModelBinder`1.PopulateMetadata(System.Reflection.ParameterInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="parameter"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.SuppressBinding`1">
+            <summary>
+            Suprresses the default binding logic of RequestDelegateFactory when accepted as a parameter to a route handler.
+            </summary>
+            <typeparam name="TValue">The <see cref="T:System.Type"/> of the parameter to suppress binding for.</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.SuppressBinding`1.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Binding.SuppressBinding`1"/> class.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.SuppressBinding`1.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Binds the specified parameter from <see cref="P:Microsoft.AspNetCore.Http.HttpContext.Request"/>. This method is called by the framework on your behalf
+            when populating parameters of a mapped route handler.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> to bind the parameter from.</param>
+            <param name="parameter">The route handler parameter being bound to.</param>
+            <returns>An instance of <see cref="T:MinimalApis.Extensions.Binding.SuppressBinding`1"/>.</returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.SuppressBinding`1.PopulateMetadata(System.Reflection.ParameterInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="parameter"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1">
+            <summary>
+            Suprresses the default response logic of <see cref="T:Microsoft.AspNetCore.Http.RequestDelegateFactory"/> when accepted as a parameter to a route handler.
+            Default binding of the <typeparamref name="TValue"/> will still occur.
+            </summary>
+            <typeparam name="TValue">The <see cref="T:System.Type"/> of the parameter.</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.#ctor(`0,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1"/>.
+            </summary>
+            <param name="value"></param>
+            <param name="statusCode">The type of the parameter that the default response is being suppressed for.</param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.#ctor(System.Exception)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1"/> class using the provided <see cref="P:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.Exception"/>.
+            </summary>
+            <param name="exception">The <see cref="P:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.Exception"/>.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.Value">
+            <summary>
+            The value bound by <see cref="T:Microsoft.AspNetCore.Http.RequestDelegateFactory"/>.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.StatusCode">
+            <summary>
+            The status code that <see cref="T:Microsoft.AspNetCore.Http.RequestDelegateFactory"/> would have returned.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.Exception">
+            <summary>
+            The exception that occurred if binding failed.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Binds the specified parameter from <see cref="P:Microsoft.AspNetCore.Http.HttpContext.Request"/>. This method is called by the framework on your behalf
+            when populating parameters of a mapped route handler.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> to bind the parameter from.</param>
+            <param name="parameter">The route handler parameter being bound to.</param>
+            <returns>An instance of <see cref="T:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1"/>.</returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.SuppressDefaultResponse`1.PopulateMetadata(System.Reflection.ParameterInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="parameter"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Binding.Validated`1">
+            <summary>
+            Represents a validated object of the type specified by <typeparamref name="TValue"/> as a parameter to an ASP.NET Core route handler delegate.
+            </summary>
+            <typeparam name="TValue">The type of the object being validated.</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Validated`1.#ctor(`0,System.String[],System.Nullable{System.Int32})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Binding.Validated`1"/> class.
+            </summary>
+            <param name="value">The object to validate.</param>
+            <param name="initialErrors">Any initial object-level errors to populate the <see cref="P:MinimalApis.Extensions.Binding.Validated`1.Errors"/> collection with.</param>
+            <param name="defaultBindingResultStatusCode">The <see cref="P:Microsoft.AspNetCore.Http.HttpResponse.StatusCode"/> set by the default binder, if any.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.Validated`1.Value">
+            <summary>
+            The validated object.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.Validated`1.IsValid">
+            <summary>
+            Indicates whether the object is valid or not. <c>true</c> if the object is valid; <c>false</c> if it is not.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.Validated`1.Errors">
+            <summary>
+            A dictionary that contains details of each failed validation.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Binding.Validated`1.DefaultBindingResultStatusCode">
+            <summary>
+            Gets the response status code set by the default binding logic if there were any binding issues. This value will
+            be <c>null</c> if the default binding logic did not detect an issue.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Validated`1.Deconstruct(`0@,System.Boolean@)">
+            <summary>
+            Deconstructs the <see cref="P:MinimalApis.Extensions.Binding.Validated`1.Value"/> and <see cref="P:MinimalApis.Extensions.Binding.Validated`1.IsValid"/> properties.
+            </summary>
+            <param name="value">The value of <see cref="P:MinimalApis.Extensions.Binding.Validated`1.Value"/>.</param>
+            <param name="isValid">The value of <see cref="P:MinimalApis.Extensions.Binding.Validated`1.IsValid"/>.</param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Validated`1.Deconstruct(`0@,System.Boolean@,System.Collections.Generic.IDictionary{System.String,System.String[]}@)">
+            <summary>
+            Deconstructs the <see cref="P:MinimalApis.Extensions.Binding.Validated`1.Value"/>, <see cref="P:MinimalApis.Extensions.Binding.Validated`1.IsValid"/>, and <see cref="P:MinimalApis.Extensions.Binding.Validated`1.Errors"/> properties.
+            </summary>
+            <param name="value">The value of <see cref="P:MinimalApis.Extensions.Binding.Validated`1.Value"/>.</param>
+            <param name="isValid">The value of <see cref="P:MinimalApis.Extensions.Binding.Validated`1.IsValid"/>.</param>
+            <param name="errors">The value of <see cref="P:MinimalApis.Extensions.Binding.Validated`1.Errors"/>.</param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Validated`1.BindAsync(Microsoft.AspNetCore.Http.HttpContext,System.Reflection.ParameterInfo)">
+            <summary>
+            Binds the specified parameter from <see cref="P:Microsoft.AspNetCore.Http.HttpContext.Request"/>. This method is called by the framework on your behalf
+            when populating parameters of a mapped route handler.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> to bind the parameter from.</param>
+            <param name="parameter">The route handler parameter being bound to.</param>
+            <returns>An instance of <see cref="T:MinimalApis.Extensions.Binding.Validated`1"/> if one is deserialized from the request, otherwise <c>null</c>.</returns>
+            <exception cref="T:Microsoft.AspNetCore.Http.BadHttpRequestException">Thrown when the request Content-Type header is not a recognized JSON media type.</exception>
+        </member>
+        <member name="M:MinimalApis.Extensions.Binding.Validated`1.PopulateMetadata(System.Reflection.ParameterInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="parameter"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Metadata.EndpointMetadataProviderApiDescriptionProvider">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Mvc.ApiExplorer.IApiDescriptionProvider"/> that adds <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> metadata provided by
+            <see cref="T:Microsoft.AspNetCore.Http.Metadata.IEndpointParameterMetadataProvider"/> and <see cref="T:Microsoft.AspNetCore.Http.Metadata.IEndpointMetadataProvider"/>
+            too ApiExplorer and thus OpenAPI/Swagger documents and UI.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Metadata.EndpointMetadataProviderApiDescriptionProvider.#ctor(System.IServiceProvider,Microsoft.AspNetCore.Routing.EndpointDataSource)">
+            <summary>
+            Creates an instance of <see cref="T:MinimalApis.Extensions.Metadata.EndpointMetadataProviderApiDescriptionProvider"/>.
+            </summary>
+            <param name="services">The <see cref="T:System.IServiceProvider"/>.</param>
+            <param name="endpointDataSource">The <see cref="T:Microsoft.AspNetCore.Routing.EndpointDataSource"/>.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Metadata.EndpointMetadataProviderApiDescriptionProvider.Order">
+            <summary>
+            Gets the order value for this provider. This value should ensure it runs after the in-box providers
+            for route handler endpoints, etc.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Metadata.EndpointMetadataProviderApiDescriptionProvider.OnProvidersExecuting(Microsoft.AspNetCore.Mvc.ApiExplorer.ApiDescriptionProviderContext)">
+            <summary>
+            Called before the providers are executed.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Mvc.ApiExplorer.ApiDescriptionProviderContext"/>.</param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Metadata.EndpointMetadataProviderApiDescriptionProvider.OnProvidersExecuted(Microsoft.AspNetCore.Mvc.ApiExplorer.ApiDescriptionProviderContext)">
+            <summary>
+            Called after the providers are executed.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.AspNetCore.Mvc.ApiExplorer.ApiDescriptionProviderContext"/>.</param>
+            <exception cref="T:System.InvalidOperationException">
+            Thrown when an existing <see cref="T:Microsoft.AspNetCore.Mvc.ApiExplorer.ApiDescription"/> cannot be found for a registered <see cref="T:Microsoft.AspNetCore.Routing.RouteEndpoint"/>.
+            This should never happen. If it does, it might indicate an issue with the value of <see cref="P:MinimalApis.Extensions.Metadata.EndpointMetadataProviderApiDescriptionProvider.Order"/>.
+            </exception>
+        </member>
+        <member name="T:MinimalApis.Extensions.Results.FromFile">
+            <summary>
+            Represents an <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that uses the content of a file as the response body.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.FromFile.#ctor(System.String,System.String,System.Nullable{System.Int32},Microsoft.Extensions.FileProviders.IFileProvider,Microsoft.AspNetCore.StaticFiles.IContentTypeProvider)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Results.FromFile"/> class.
+            </summary>
+            <param name="filePath">The path of the file to use as the reponse body.</param>
+            <param name="contentType">An optional content type for the response body. Defaults to a content type derived from the file name extension.</param>
+            <param name="statusCode">An optional status code to return. Defaults to <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/>.</param>
+            <param name="fileProvider">An optional <see cref="T:Microsoft.Extensions.FileProviders.IFileProvider"/> to retrieve the file from. Defaults to <see cref="P:Microsoft.AspNetCore.Hosting.IHostingEnvironment.ContentRootFileProvider"/>.</param>
+            <param name="contentTypeProvider">An option <see cref="T:Microsoft.AspNetCore.StaticFiles.IContentTypeProvider"/> to use to lookup the content type from the file name extension. Defaults to <see cref="T:Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider"/>.</param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.FromFile.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            Writes an HTTP response reflecting the result.
+            </summary>
+            <param name="httpContext">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> for the current request.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> that represents the asynchronous execute operation.</returns>
+        </member>
+        <member name="T:MinimalApis.Extensions.Results.Gone">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that returns a Gone (410) status code.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Gone.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Results.Gone"/> class.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.Gone.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status410Gone"/>
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Gone.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Gone.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Results.Gone`1">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with a Gone (410) status code.
+            </summary>
+            <typeparam name="TValue">The type of value object that will be JSON serialized to the response body.</typeparam>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Gone`1.#ctor(`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Results.Gone`1"/> class with the values
+            provided.
+            </summary>
+            <param name="value">The value to format in the entity body.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.Gone`1.Value">
+            <summary>
+            Gets the object result.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.Gone`1.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status410Gone"/>
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Gone`1.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Gone`1.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Results.Html">
+            <summary>
+            Represents an <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that returns HTML content in the response body.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Html.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Results.Html"/> class.
+            </summary>
+            <param name="html">The HTML to return in the response body.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.Html.StatusCode">
+            <summary>
+            Gets the status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/>
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.Html.ContentType">
+            <summary>
+            Gets the content type: <c>text/html</c>
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.Html.Content">
+            <summary>
+            Gets the HTML content to render in the response body.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Html.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.Html.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:MinimalApis.Extensions.Results.PlainText">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that returns an Ok (200) status code response with a plain text response body.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.PlainText.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Results.PlainText"/> class.
+            </summary>
+            <param name="text">The text to write to the response body.</param>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.PlainText.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/>
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.PlainText.ContentType">
+            <summary>
+            Gets the value that will be set on the <c>Content-Type</c> header.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.PlainText.Text">
+            <summary>
+            Gets the text that will be written to the response.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.PlainText.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.PlainText.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.ResponseContentTypeHelper.ResolveContentTypeAndEncoding(System.String,System.String,System.ValueTuple{System.String,System.Text.Encoding},System.Func{System.String,System.Text.Encoding},System.String@,System.Text.Encoding@)">
+            <summary>
+            Gets the content type and encoding that need to be used for the response.
+            The priority for selecting the content type is:
+            1. ContentType property set on the action result
+            2. <see cref="P:Microsoft.AspNetCore.Http.HttpResponse.ContentType"/> property set on <see cref="T:Microsoft.AspNetCore.Http.HttpResponse"/>
+            3. Default content type set on the action result
+            </summary>
+            <remarks>
+            The user supplied content type is not modified and is used as is. For example, if user
+            sets the content type to be "text/plain" without any encoding, then the default content type's
+            encoding is used to write the response and the ContentType header is set to be "text/plain" without any
+            "charset" information.
+            </remarks>
+        </member>
+        <member name="T:MinimalApis.Extensions.Results.ResultExtensions">
+            <summary>
+            Contains extension methods for creating typed <see cref="T:Microsoft.AspNetCore.Http.IResult"/> objects to return from Minimal APIs.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.ResultExtensions.PlainText(Microsoft.AspNetCore.Http.IResultExtensions,System.String)">
+            <summary>
+            Returns a <see cref="T:MinimalApis.Extensions.Results.PlainText"/> <see cref="T:Microsoft.AspNetCore.Http.IResult"/> with <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/>.
+            </summary>
+            <param name="resultExtensions">The <see cref="T:Microsoft.AspNetCore.Http.IResultExtensions"/>.</param>
+            <param name="text">The text to return in the response body.</param>
+            <returns>The <see cref="T:MinimalApis.Extensions.Results.PlainText"/> instance.</returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.ResultExtensions.UnsupportedMediaType(Microsoft.AspNetCore.Http.IResultExtensions)">
+            <summary>
+            Returns an <see cref="T:MinimalApis.Extensions.Results.UnsupportedMediaType"/> <see cref="T:Microsoft.AspNetCore.Http.IResult"/> with <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status415UnsupportedMediaType"/>.
+            </summary>
+            <param name="resultExtensions">The <see cref="T:Microsoft.AspNetCore.Http.IResultExtensions"/>.</param>
+            <returns>The <see cref="T:MinimalApis.Extensions.Results.UnsupportedMediaType"/> instance.</returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.ResultExtensions.Html(Microsoft.AspNetCore.Http.IResultExtensions,System.String)">
+            <summary>
+            Returns an <see cref="T:MinimalApis.Extensions.Results.Html"/> <see cref="T:Microsoft.AspNetCore.Http.IResult"/> with <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/> and an HTML response body.
+            </summary>
+            <param name="resultExtensions">The <see cref="T:Microsoft.AspNetCore.Http.IResultExtensions"/>.</param>
+            <param name="html">The HTML content to write to the response body.</param>
+            <returns>The <see cref="T:MinimalApis.Extensions.Results.Html"/> instance.</returns>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.ResultExtensions.FromFile(Microsoft.AspNetCore.Http.IResultExtensions,System.String,System.String,System.Nullable{System.Int32})">
+            <summary>
+            Returns an <see cref="T:MinimalApis.Extensions.Results.FromFile"/> <see cref="T:Microsoft.AspNetCore.Http.IResult"/> with the contents of the file as the response body.
+            </summary>
+            <param name="resultExtensions">The <see cref="T:Microsoft.AspNetCore.Http.IResultExtensions"/>.</param>
+            <param name="filePath">The path of the file to use as the reponse body.</param>
+            <param name="contentType">An optional content type for the response body. Defaults to a content type derived from the file name extension.</param>
+            <param name="statusCode">An optional status code to return. Defaults to <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/>.</param>
+            <returns>The <see cref="T:MinimalApis.Extensions.Results.FromFile"/> instance.</returns>
+        </member>
+        <member name="T:MinimalApis.Extensions.Results.UnsupportedMediaType">
+            <summary>
+            Represents an <see cref="T:Microsoft.AspNetCore.Http.IResult"/> for a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status415UnsupportedMediaType"/> response.
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.UnsupportedMediaType.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:MinimalApis.Extensions.Results.UnsupportedMediaType"/> class.
+            </summary>
+        </member>
+        <member name="P:MinimalApis.Extensions.Results.UnsupportedMediaType.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status415UnsupportedMediaType"/>
+            </summary>
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.UnsupportedMediaType.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:MinimalApis.Extensions.Results.UnsupportedMediaType.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.Extensions.DependencyInjection.MinimalApisBindingExtensionsServiceCollectionExtensions">
+            <summary>
+            Provides extension methods for adding binding-related Minimal APIs extensions to the application <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.MinimalApisBindingExtensionsServiceCollectionExtensions.AddParameterBinder``2(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Registers a <see cref="T:System.Type"/> to use as a parameter binder for route handler delegates.
+            </summary>
+            <typeparam name="TBinder">The <see cref="T:System.Type"/> to register as a parameter binder.</typeparam>
+            <typeparam name="TModel">The parameter type to register the binder for.</typeparam>
+            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.</param>
+            <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.</returns>
+        </member>
+        <member name="T:Microsoft.Extensions.DependencyInjection.EndpointMetadataProviderApiDescriptionProviderExtensions">
+            <summary>
+            Extension methods for adding an <see cref="T:Microsoft.AspNetCore.Mvc.ApiExplorer.IApiDescriptionProvider"/> so that <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> metadata
+            provided by <see cref="T:Microsoft.AspNetCore.Http.Metadata.IEndpointParameterMetadataProvider"/> and <see cref="T:Microsoft.AspNetCore.Http.Metadata.IEndpointMetadataProvider"/>
+            appear in ApiExplorer and thus OpenAPI/Swagger documents and UI.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.EndpointMetadataProviderApiDescriptionProviderExtensions.AddEndpointsMetadataProviderApiExplorer(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Configures ApiExplorer using <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> metadata, <see cref="T:Microsoft.AspNetCore.Http.Metadata.IEndpointParameterMetadataProvider"/>
+            and <see cref="T:Microsoft.AspNetCore.Http.Metadata.IEndpointMetadataProvider"/>. 
+            </summary>
+            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.</param>
+            <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.</returns>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.Metadata.IEndpointMetadataProvider">
+            <summary>
+            Marker interface that indicates a type provides a static method that populates <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> metadata for the
+            returned value from a given <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegate. The method must be of the form:
+            <code>public static void PopulateMetadata(<see cref="T:System.Reflection.MethodInfo"/> method, <see cref="T:System.Collections.Generic.IList`1"/> metadata, <see cref="T:System.IServiceProvider"/> services)</code>
+            </summary>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.Metadata.IEndpointParameterMetadataProvider">
+            <summary>
+            Marker interface that indicates a type provides a static method that populates <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> metadata for a
+            parameter on a route handler delegate. The method must be of the form:
+            <code>public static void PopulateMetadata(<see cref="T:System.Reflection.ParameterInfo"/> parameter, <see cref="T:Microsoft.AspNetCore.Builder.EndpointBuilder"/> builder)</code>
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.ProducesResponseTypeMetadata.Type">
+            <summary>
+            Gets or sets the type of the value returned by an action.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.ProducesResponseTypeMetadata.StatusCode">
+            <summary>
+            Gets or sets the HTTP status code of the response.
+            </summary>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.Accepted">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with status code Accepted (202) and Location header.
+            Targets a registered route.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Accepted.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Accepted"/> class.
+            </summary>
+            <param name="location">The location at which the status of requested content can be monitored.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Accepted.#ctor(System.Uri)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Accepted"/> class with the values
+            provided.
+            </summary>
+            <param name="locationUri">The location at which the status of requested content can be monitored.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.Accepted.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status202Accepted"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.Accepted.Location">
+            <summary>
+            Gets the location at which the status of the requested content can be monitored.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Accepted.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            Writes an HTTP response reflecting the result.
+            </summary>
+            <param name="httpContext">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> for the current request.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> that represents the asynchronous execute operation.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Accepted.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for the related <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/>.
+            </summary>
+            <param name="methodInfo"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with status code Accepted (202) and Location header.
+            Targets a registered route.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute.#ctor(System.Object)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute"/> class with the values
+            provided.
+            </summary>
+            <param name="routeValues">The route data to use for generating the URL.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute.#ctor(System.String,System.Object)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute"/> class with the values
+            provided.
+            </summary>
+            <param name="routeName">The name of the route to use for generating the URL.</param>
+            <param name="routeValues">The route data to use for generating the URL.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute.RouteName">
+            <summary>
+            Gets the name of the route to use for generating the URL.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute.RouteValues">
+            <summary>
+            Gets the route data to use for generating the URL.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status202Accepted"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for the related <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/>.
+            </summary>
+            <param name="methodInfo"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute`1">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with status code Accepted (202) and Location header.
+            Targets a registered route.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute`1.#ctor(System.Object,`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute"/> class with the values
+            provided.
+            </summary>
+            <param name="routeValues">The route data to use for generating the URL.</param>
+            <param name="value">The value to format in the entity body.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute`1.#ctor(System.String,System.Object,`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute"/> class with the values
+            provided.
+            </summary>
+            <param name="routeName">The name of the route to use for generating the URL.</param>
+            <param name="routeValues">The route data to use for generating the URL.</param>
+            <param name="value">The value to format in the entity body.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute`1.Value">
+            <summary>
+            Gets the object result.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute`1.RouteName">
+            <summary>
+            Gets the name of the route to use for generating the URL.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute`1.RouteValues">
+            <summary>
+            Gets the route data to use for generating the URL.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute`1.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status202Accepted"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute`1.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute`1.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for the related <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/>.
+            </summary>
+            <param name="methodInfo"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.Accepted`1">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with status code Accepted (202) and Location header.
+            Targets a registered route.
+            </summary>
+            <typeparam name="TValue">The type of value object that will be JSON serialized to the response body.</typeparam>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Accepted`1.#ctor(System.String,`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Accepted"/> class with the values
+            provided.
+            </summary>
+            <param name="location">The location at which the status of requested content can be monitored.</param>
+            <param name="value">The value to format in the entity body.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Accepted`1.#ctor(System.Uri,`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Accepted"/> class with the values
+            provided.
+            </summary>
+            <param name="locationUri">The location at which the status of requested content can be monitored.</param>
+            <param name="value">The value to format in the entity body.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.Accepted`1.Value">
+            <summary>
+            Gets the object result.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.Accepted`1.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status202Accepted"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.Accepted`1.Location">
+            <summary>
+            Gets the location at which the status of the requested content can be monitored.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Accepted`1.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Accepted`1.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for the related <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/>.
+            </summary>
+            <param name="methodInfo"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.BadRequest">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with Bad Request (400) status code.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.BadRequest.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.BadRequest"/> class with the values
+            provided.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.BadRequest.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.BadRequest.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.BadRequest.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for the related <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/>.
+            </summary>
+            <param name="methodInfo"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.BadRequest`1">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with Bad Request (400) status code.
+            </summary>
+            <typeparam name="TValue">The type of error object that will be JSON serialized to the response body.</typeparam>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.BadRequest`1.#ctor(`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.BadRequest"/> class with the values
+            provided.
+            </summary>
+            <param name="error">The error content to format in the entity body.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.BadRequest`1.Value">
+            <summary>
+            Gets the object result.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.BadRequest`1.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.BadRequest`1.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.BadRequest`1.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for the related <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/>.
+            </summary>
+            <param name="methodInfo"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution invokes <see cref="M:HttpContext.ChallengeAsync"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult.#ctor">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult"/> with the
+            specified authentication scheme.
+            </summary>
+            <param name="authenticationScheme">The authentication scheme to challenge.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult.#ctor(System.Collections.Generic.IList{System.String})">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult"/> with the
+            specified authentication schemes.
+            </summary>
+            <param name="authenticationSchemes">The authentication schemes to challenge.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult.#ctor(Microsoft.AspNetCore.Authentication.AuthenticationProperties)">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult"/> with the
+            specified <paramref name="properties"/>.
+            </summary>
+            <param name="properties"><see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the authentication
+            challenge.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult.#ctor(System.String,Microsoft.AspNetCore.Authentication.AuthenticationProperties)">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult"/> with the
+            specified authentication scheme and <paramref name="properties"/>.
+            </summary>
+            <param name="authenticationScheme">The authentication schemes to challenge.</param>
+            <param name="properties"><see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the authentication
+            challenge.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult.#ctor(System.Collections.Generic.IList{System.String},Microsoft.AspNetCore.Authentication.AuthenticationProperties)">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult"/> with the
+            specified authentication schemes and <paramref name="properties"/>.
+            </summary>
+            <param name="authenticationSchemes">The authentication scheme to challenge.</param>
+            <param name="properties"><see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the authentication
+            challenge.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult.AuthenticationSchemes">
+            <summary>
+            Gets the authentication schemes that are challenged.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult.Properties">
+            <summary>
+            Gets the <see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the sign-out operation.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.Conflict">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with Conflict (409) status code.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Conflict.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Conflict"/> class with the values
+            provided.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.Conflict.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status409Conflict"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Conflict.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Conflict.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for the related <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/>.
+            </summary>
+            <param name="methodInfo"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.Conflict`1">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with Conflict (409) status code.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Conflict`1.#ctor(`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Conflict"/> class with the values
+            provided.
+            </summary>
+            <param name="error">The error content to format in the entity body.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.Conflict`1.Value">
+            <summary>
+            Gets the object result.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.Conflict`1.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status409Conflict"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Conflict`1.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Conflict`1.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for the related <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/>.
+            </summary>
+            <param name="methodInfo"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult"/> that when executed
+            will produce a response with content.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult"/> class with the values.
+            </summary>
+            <param name="content">The value to format in the entity body.</param>
+            <param name="contentType">The Content-Type header for the response</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult.#ctor(System.String,System.String,System.Nullable{System.Int32})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult"/> class with the values
+            </summary>
+            <param name="content">The value to format in the entity body.</param>
+            <param name="statusCode">The HTTP status code of the response.</param>
+            <param name="contentType">The Content-Type header for the response</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult.ResponseContent">
+            <summary>
+            Gets the content representing the body of the response.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult.ContentType">
+            <summary>
+            Gets the Content-Type header for the response.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult.StatusCode">
+            <summary>
+            Gets the HTTP status code.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            Writes the content to the HTTP response.
+            </summary>
+            <param name="httpContext">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> for the current request.</param>
+            <returns>A task that represents the asynchronous execute operation.</returns>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.Created">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with status code Created (201) and Location header.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Created.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Created"/> class with the values
+            provided.
+            </summary>
+            <param name="location">The location at which the content has been created.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Created.#ctor(System.Uri)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Created"/> class with the values
+            provided.
+            </summary>
+            <param name="locationUri">The location at which the content has been created.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.Created.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status201Created"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.Created.Location">
+            <summary>
+            Gets the value that will be set for the <c>Location</c> header.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Created.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Created.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for the related <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/>.
+            </summary>
+            <param name="methodInfo"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with status code Created (201) and Location header.
+            Targets a registered route.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute.#ctor(System.Object)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute"/> class with the values
+            provided.
+            </summary>
+            <param name="routeValues">The route data to use for generating the URL.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute.#ctor(System.String,System.Object)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute"/> class with the values
+            provided.
+            </summary>
+            <param name="routeName">The name of the route to use for generating the URL.</param>
+            <param name="routeValues">The route data to use for generating the URL.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute.RouteName">
+            <summary>
+            Gets the name of the route to use for generating the URL.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute.RouteValues">
+            <summary>
+            Gets the route data to use for generating the URL.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status201Created"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for the related <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/>.
+            </summary>
+            <param name="methodInfo"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute`1">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with status code Created (201) and Location header.
+            Targets a registered route.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute`1.#ctor(System.Object,`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute"/> class with the values
+            provided.
+            </summary>
+            <param name="routeValues">The route data to use for generating the URL.</param>
+            <param name="value">The value to format in the entity body.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute`1.#ctor(System.String,System.Object,`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute"/> class with the values
+            provided.
+            </summary>
+            <param name="routeName">The name of the route to use for generating the URL.</param>
+            <param name="routeValues">The route data to use for generating the URL.</param>
+            <param name="value">The value to format in the entity body.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute`1.Value">
+            <summary>
+            Gets the object result.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute`1.RouteName">
+            <summary>
+            Gets the name of the route to use for generating the URL.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute`1.RouteValues">
+            <summary>
+            Gets the route data to use for generating the URL.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute`1.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status201Created"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute`1.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute`1.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for the related <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/>.
+            </summary>
+            <param name="methodInfo"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.Created`1">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with status code Created (201) and Location header.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Created`1.#ctor(System.String,`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Created"/> class with the values
+            provided.
+            </summary>
+            <param name="location">The location at which the content has been created.</param>
+            <param name="value">The value to format in the entity body.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Created`1.#ctor(System.Uri,`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Created"/> class with the values
+            provided.
+            </summary>
+            <param name="locationUri">The location at which the content has been created.</param>
+            <param name="value">The value to format in the entity body.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.Created`1.Value">
+            <summary>
+            Gets the object result.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.Created`1.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status201Created"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.Created`1.Location">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Created`1.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Created`1.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Populates metadata for the related <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/>.
+            </summary>
+            <param name="methodInfo"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.EmptyHttpResult">
+            <summary>
+            Represents an <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that when executed will
+            do nothing.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.EmptyHttpResult.Instance">
+            <summary>
+            Gets an instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.EmptyHttpResult"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.EmptyHttpResult.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution invokes <see cref="M:HttpContext.ForbidAsync"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult.#ctor">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult"/> with the
+            specified authentication scheme.
+            </summary>
+            <param name="authenticationScheme">The authentication scheme to challenge.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult.#ctor(System.Collections.Generic.IList{System.String})">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult"/> with the
+            specified authentication schemes.
+            </summary>
+            <param name="authenticationSchemes">The authentication schemes to challenge.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult.#ctor(Microsoft.AspNetCore.Authentication.AuthenticationProperties)">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult"/> with the
+            specified <paramref name="properties"/>.
+            </summary>
+            <param name="properties"><see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the authentication
+            challenge.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult.#ctor(System.String,Microsoft.AspNetCore.Authentication.AuthenticationProperties)">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult"/> with the
+            specified authentication scheme and <paramref name="properties"/>.
+            </summary>
+            <param name="authenticationScheme">The authentication schemes to challenge.</param>
+            <param name="properties"><see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the authentication
+            challenge.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult.#ctor(System.Collections.Generic.IList{System.String},Microsoft.AspNetCore.Authentication.AuthenticationProperties)">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult"/> with the
+            specified authentication schemes and <paramref name="properties"/>.
+            </summary>
+            <param name="authenticationSchemes">The authentication scheme to challenge.</param>
+            <param name="properties"><see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the authentication
+            challenge.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult.AuthenticationSchemes">
+            <summary>
+            Gets the authentication schemes that are challenged.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult.Properties">
+            <summary>
+            Gets the <see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the authentication challenge.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc />
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.JsonHttpResult`1">
+            <summary>
+            An action result which formats the given object as JSON.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.JsonHttpResult`1.#ctor(`0,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Initializes a new instance of the <see cref="N:Microsoft.AspNetCore.Http.Json"/> class with the values.
+            </summary>
+            <param name="value">The value to format in the entity body.</param>
+            <param name="jsonSerializerOptions">The serializer settings.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.JsonHttpResult`1.#ctor(`0,System.Nullable{System.Int32},System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Initializes a new instance of the <see cref="N:Microsoft.AspNetCore.Http.Json"/> class with the values.
+            </summary>
+            <param name="value">The value to format in the entity body.</param>
+            <param name="statusCode">The HTTP status code of the response.</param>
+            <param name="jsonSerializerOptions">The serializer settings.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.JsonHttpResult`1.#ctor(`0,System.String,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Initializes a new instance of the <see cref="N:Microsoft.AspNetCore.Http.Json"/> class with the values.
+            </summary>
+            <param name="value">The value to format in the entity body.</param>
+            <param name="contentType">The value for the <c>Content-Type</c> header</param>
+            <param name="jsonSerializerOptions">The serializer settings.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.JsonHttpResult`1.#ctor(`0,System.Nullable{System.Int32},System.String,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Initializes a new instance of the <see cref="N:Microsoft.AspNetCore.Http.Json"/> class with the values.
+            </summary>
+            <param name="value">The value to format in the entity body.</param>
+            <param name="statusCode">The HTTP status code of the response.</param>
+            <param name="jsonSerializerOptions">The serializer settings.</param>
+            <param name="contentType">The value for the <c>Content-Type</c> header</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.JsonHttpResult`1.JsonSerializerOptions">
+            <summary>
+            Gets or sets the serializer settings.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.JsonHttpResult`1.Value">
+            <summary>
+            Gets the object result.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.JsonHttpResult`1.ContentType">
+            <summary>
+            Gets the value for the <c>Content-Type</c> header.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.JsonHttpResult`1.StatusCode">
+            <summary>
+            Gets the HTTP status code.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.JsonHttpResult`1.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.NoContent">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that returns an No Content (204) status code.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.NoContent.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.NoContent"/> class.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.NoContent.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status204NoContent"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.NoContent.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.NoContent.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.NotFound">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that returns a Not Found (404) status code.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.NotFound.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.NotFound"/> class with the values.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.NotFound.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.NotFound.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.NotFound.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.NotFound`1">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with Not Found (404) status code.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.NotFound`1.#ctor(`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.NotFound"/> class with the values.
+            </summary>
+            <param name="value">The value to format in the entity body.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.NotFound`1.Value">
+            <summary>
+            Gets the object result.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.NotFound`1.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.NotFound`1.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.NotFound`1.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.Ok">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that returns an Ok (200) status code.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Ok.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Ok"/> class with the values.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.Ok.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Ok.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Ok.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.Ok`1">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with an Ok (200) status code.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Ok`1.#ctor(`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Ok"/> class with the values.
+            </summary>
+            <param name="value">The value to format in the entity body.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.Ok`1.Value">
+            <summary>
+            Gets the object result.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.Ok`1.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Ok`1.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Ok`1.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write Problem Details
+            HTTP API responses based on <see href="https://tools.ietf.org/html/rfc7807"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult.#ctor(Microsoft.AspNetCore.Mvc.ProblemDetails)">
+            <summary>
+            Creates a new <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult"/> instance with
+            the provided <paramref name="problemDetails"/>.
+            </summary>
+            <param name="problemDetails">The <see cref="P:Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult.ProblemDetails"/> instance to format in the entity body.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult.ProblemDetails">
+            <summary>
+            Gets the <see cref="P:Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult.ProblemDetails"/> instance.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult.IncludeRequestId">
+            <summary>
+            Gets or sets a value indicating whether a request ID should be included in the response.
+            Defaults to <c>true</c>.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult.ContentType">
+            <summary>
+            Gets the value for the <c>Content-Type</c> header: <c>application/problem+json</c>
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult.StatusCode">
+            <summary>
+            Gets the HTTP status code.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that returns a Found (302), Moved Permanently (301), Temporary Redirect (307),
+            or Permanent Redirect (308) response with a Location header to the supplied URL.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult"/> class with the values
+            provided.
+            </summary>
+            <param name="url">The URL to redirect to.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult.#ctor(System.String,System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult"/> class with the values
+            provided.
+            </summary>
+            <param name="url">The URL to redirect to.</param>
+            <param name="permanent">Specifies whether the redirect should be permanent (301) or temporary (302).</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult.#ctor(System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult"/> class with the values
+            provided.
+            </summary>
+            <param name="url">The URL to redirect to.</param>
+            <param name="permanent">Specifies whether the redirect should be permanent (301) or temporary (302).</param>
+            <param name="preserveMethod">If set to true, make the temporary redirect (307)
+            or permanent redirect (308) preserve the initial request method.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult.#ctor(System.String,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult"/> class with the values
+            provided.
+            </summary>
+            <param name="url">The URL to redirect to.</param>
+            <param name="permanent">Specifies whether the redirect should be permanent (301) or temporary (302).</param>
+            <param name="preserveMethod">If set to true, make the temporary redirect (307)
+            or permanent redirect (308) preserve the initial request method.</param>
+            <param name="acceptLocalUrlOnly">If set to true, only local URLs are accepted
+            and will throw an exception when the supplied URL is not considered local.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult.Permanent">
+            <summary>
+            Gets the value that specifies that the redirect should be permanent if true or temporary if false.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult.PreserveMethod">
+            <summary>
+            Gets an indication that the redirect preserves the initial request method.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult.Url">
+            <summary>
+            Gets the URL to redirect to.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult.AcceptLocalUrlOnly">
+            <summary>
+            Gets an indication that only local URLs are accepted.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc />
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that returns a Found (302), Moved Permanently (301), Temporary Redirect (307),
+            or Permanent Redirect (308) response with a Location header.
+            Targets a registered route.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult.#ctor(System.Object)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult"/> with the values
+            provided.
+            </summary>
+            <param name="routeValues">The parameters for the route.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult.#ctor(System.String,System.Object)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult"/> with the values
+            provided.
+            </summary>
+            <param name="routeName">The name of the route.</param>
+            <param name="routeValues">The parameters for the route.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult.#ctor(System.String,System.Object,System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult"/> with the values
+            provided.
+            </summary>
+            <param name="routeName">The name of the route.</param>
+            <param name="routeValues">The parameters for the route.</param>
+            <param name="permanent">If set to true, makes the redirect permanent (301).
+            Otherwise a temporary redirect is used (302).</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult.#ctor(System.String,System.Object,System.Boolean,System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult"/> with the values
+            provided.
+            </summary>
+            <param name="routeName">The name of the route.</param>
+            <param name="routeValues">The parameters for the route.</param>
+            <param name="permanent">If set to true, makes the redirect permanent (301).
+            Otherwise a temporary redirect is used (302).</param>
+            <param name="preserveMethod">If set to true, make the temporary redirect (307)
+            or permanent redirect (308) preserve the initial request method.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult.#ctor(System.String,System.Object,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult"/> with the values
+            provided.
+            </summary>
+            <param name="routeName">The name of the route.</param>
+            <param name="routeValues">The parameters for the route.</param>
+            <param name="fragment">The fragment to add to the URL.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult.#ctor(System.String,System.Object,System.Boolean,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult"/> with the values
+            provided.
+            </summary>
+            <param name="routeName">The name of the route.</param>
+            <param name="routeValues">The parameters for the route.</param>
+            <param name="permanent">If set to true, makes the redirect permanent (301).
+            Otherwise a temporary redirect is used (302).</param>
+            <param name="fragment">The fragment to add to the URL.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult.#ctor(System.String,System.Object,System.Boolean,System.Boolean,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult"/> with the values
+            provided.
+            </summary>
+            <param name="routeName">The name of the route.</param>
+            <param name="routeValues">The parameters for the route.</param>
+            <param name="permanent">If set to true, makes the redirect permanent (301).
+            Otherwise a temporary redirect is used (302).</param>
+            <param name="preserveMethod">If set to true, make the temporary redirect (307)
+            or permanent redirect (308) preserve the initial request method.</param>
+            <param name="fragment">The fragment to add to the URL.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult.RouteName">
+            <summary>
+            Gets the name of the route to use for generating the URL.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult.RouteValues">
+            <summary>
+            Gets the route data to use for generating the URL.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult.Permanent">
+            <summary>
+            Gets the value that specifies that the redirect should be permanent if true or temporary if false.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult.PreserveMethod">
+            <summary>
+            Gets an indication that the redirect preserves the initial request method.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult.Fragment">
+            <summary>
+            Gets the fragment to add to the URL.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc />
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.ResultsBase">
+            <summary>
+            Represents the result of an <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegate that can return more than one <see cref="T:Microsoft.AspNetCore.Http.IResult"/> type.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ResultsBase.#ctor(Microsoft.AspNetCore.Http.IResult)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ResultsBase"/> class.
+            </summary>
+            <param name="activeResult">The <see cref="T:Microsoft.AspNetCore.Http.IResult"/> returned.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.ResultsBase.Result">
+            <summary>
+            Gets the actual <see cref="T:Microsoft.AspNetCore.Http.IResult"/> returned by the <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegate.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ResultsBase.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            Writes an HTTP response reflecting the result.
+            </summary>
+            <param name="httpContext">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> for the current request.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> that represents the asynchronous execute operation.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ResultsBase.PopulateMetadata(System.Collections.Generic.IList{System.Object},System.IServiceProvider,System.Type[])">
+            <summary>
+            Gets the <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> metadata for the set of result types that the given
+            <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegate delclares it can return.
+            </summary>
+            <param name="metadata">The list of endpoint metadata.</param>
+            <param name="services">The application services.</param>
+            <param name="resultTypes">The different result types the route handler delegate can return.</param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.Results`2">
+            <summary>
+            Represents the result of an <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegate that can return two different <see cref="T:Microsoft.AspNetCore.Http.IResult"/> types.
+            </summary>
+            <typeparam name="TResult1">The first result type.</typeparam>
+            <typeparam name="TResult2">The second result type.</typeparam>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`2.op_Implicit(`0)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1}">
+            <summary>
+            Converts the <typeparamref name="TResult1"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`2"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`2.op_Implicit(`1)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1}">
+            <summary>
+            Converts the <typeparamref name="TResult2"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`2"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`2.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method">The route handler delegate.</param>
+            <param name="metadata">The list of endpoint metadata.</param>
+            <param name="services">The application services.</param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.Results`3">
+            <summary>
+            Represents the result of an <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegate that can return three different <see cref="T:Microsoft.AspNetCore.Http.IResult"/> types.
+            </summary>
+            <typeparam name="TResult1">The first result type.</typeparam>
+            <typeparam name="TResult2">The second result type.</typeparam>
+            <typeparam name="TResult3">The third result type.</typeparam>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`3.op_Implicit(`0)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2}">
+            <summary>
+            Converts the <typeparamref name="TResult1"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`3"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`3.op_Implicit(`1)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2}">
+            <summary>
+            Converts the <typeparamref name="TResult2"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`3"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`3.op_Implicit(`2)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2}">
+            <summary>
+            Converts the <typeparamref name="TResult3"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`3"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`3.op_Implicit(Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1})~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2}">
+            <summary>
+            Converts the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`2"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`3"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`3.op_Implicit(Microsoft.AspNetCore.Http.HttpResults.Results{`1,`0})~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2}">
+            <summary>
+            Converts the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`2"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`3"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`3.op_Implicit(Microsoft.AspNetCore.Http.HttpResults.Results{`1,`2})~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2}">
+            <summary>
+            Converts the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`2"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`3"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`3.op_Implicit(Microsoft.AspNetCore.Http.HttpResults.Results{`2,`1})~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2}">
+            <summary>
+            Converts the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`2"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`3"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`3.op_Implicit(Microsoft.AspNetCore.Http.HttpResults.Results{`0,`2})~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2}">
+            <summary>
+            Converts the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`2"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`3"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`3.op_Implicit(Microsoft.AspNetCore.Http.HttpResults.Results{`2,`0})~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2}">
+            <summary>
+            Converts the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`2"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`3"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`3.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method">The route handler delegate.</param>
+            <param name="metadata">The list of endpoint metadata.</param>
+            <param name="services">The application services.</param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.Results`4">
+            <summary>
+            Represents the result of an <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegate that can return four different <see cref="T:Microsoft.AspNetCore.Http.IResult"/> types.
+            </summary>
+            <typeparam name="TResult1">The first result type.</typeparam>
+            <typeparam name="TResult2">The second result type.</typeparam>
+            <typeparam name="TResult3">The third result type.</typeparam>
+            <typeparam name="TResult4">The fourth result type.</typeparam>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`4.op_Implicit(`0)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2,`3}">
+            <summary>
+            Converts the <typeparamref name="TResult1"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`4"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`4.op_Implicit(`1)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2,`3}">
+            <summary>
+            Converts the <typeparamref name="TResult2"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`4"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`4.op_Implicit(`2)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2,`3}">
+            <summary>
+            Converts the <typeparamref name="TResult3"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`4"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`4.op_Implicit(`3)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2,`3}">
+            <summary>
+            Converts the <typeparamref name="TResult4"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`4"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`4.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method">The route handler delegate.</param>
+            <param name="metadata">The list of endpoint metadata.</param>
+            <param name="services">The application services.</param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.Results`5">
+            <summary>
+            Represents the result of an <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegate that can return five different <see cref="T:Microsoft.AspNetCore.Http.IResult"/> types.
+            </summary>
+            <typeparam name="TResult1">The first result type.</typeparam>
+            <typeparam name="TResult2">The second result type.</typeparam>
+            <typeparam name="TResult3">The third result type.</typeparam>
+            <typeparam name="TResult4">The fourth result type.</typeparam>
+            <typeparam name="TResult5">The fifth result type.</typeparam>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`5.op_Implicit(`0)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2,`3,`4}">
+            <summary>
+            Converts the <typeparamref name="TResult1"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`5"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`5.op_Implicit(`1)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2,`3,`4}">
+            <summary>
+            Converts the <typeparamref name="TResult2"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`5"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`5.op_Implicit(`2)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2,`3,`4}">
+            <summary>
+            Converts the <typeparamref name="TResult3"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`5"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`5.op_Implicit(`3)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2,`3,`4}">
+            <summary>
+            Converts the <typeparamref name="TResult4"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`5"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`5.op_Implicit(`4)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2,`3,`4}">
+            <summary>
+            Converts the <typeparamref name="TResult5"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`5"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`5.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method">The route handler delegate.</param>
+            <param name="metadata">The list of endpoint metadata.</param>
+            <param name="services">The application services.</param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.Results`6">
+            <summary>
+            Represents the result of an <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegate that can return six different <see cref="T:Microsoft.AspNetCore.Http.IResult"/> types.
+            </summary>
+            <typeparam name="TResult1">The first result type.</typeparam>
+            <typeparam name="TResult2">The second result type.</typeparam>
+            <typeparam name="TResult3">The third result type.</typeparam>
+            <typeparam name="TResult4">The fourth result type.</typeparam>
+            <typeparam name="TResult5">The fifth result type.</typeparam>
+            <typeparam name="TResult6">The sixth result type.</typeparam>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`6.op_Implicit(`0)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2,`3,`4,`5}">
+            <summary>
+            Converts the <typeparamref name="TResult1"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`6"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`6.op_Implicit(`1)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2,`3,`4,`5}">
+            <summary>
+            Converts the <typeparamref name="TResult2"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`6"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`6.op_Implicit(`2)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2,`3,`4,`5}">
+            <summary>
+            Converts the <typeparamref name="TResult3"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`6"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`6.op_Implicit(`3)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2,`3,`4,`5}">
+            <summary>
+            Converts the <typeparamref name="TResult4"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`6"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`6.op_Implicit(`4)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2,`3,`4,`5}">
+            <summary>
+            Converts the <typeparamref name="TResult5"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`6"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`6.op_Implicit(`5)~Microsoft.AspNetCore.Http.HttpResults.Results{`0,`1,`2,`3,`4,`5}">
+            <summary>
+            Converts the <typeparamref name="TResult6"/> to a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Results`6"/>.
+            </summary>
+            <param name="result">The result.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.Results`6.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method">The route handler delegate.</param>
+            <param name="metadata">The list of endpoint metadata.</param>
+            <param name="services">The application services.</param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.SignInHttpResult">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution invokes <see cref="M:HttpContext.SignInAsync"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.SignInHttpResult.#ctor(System.Security.Claims.ClaimsPrincipal)">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.SignInHttpResult"/> with the
+            default authentication scheme.
+            </summary>
+            <param name="principal">The claims principal containing the user claims.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.SignInHttpResult.#ctor(System.Security.Claims.ClaimsPrincipal,System.String,Microsoft.AspNetCore.Authentication.AuthenticationProperties)">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.SignInHttpResult"/> with the
+            specified authentication scheme and <paramref name="properties"/>.
+            </summary>
+            <param name="principal">The claims principal containing the user claims.</param>
+            <param name="authenticationScheme">The authentication schemes to use when signing in the user.</param>
+            <param name="properties"><see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the sign-in operation.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.SignInHttpResult.AuthenticationScheme">
+            <summary>
+            Gets or sets the authentication scheme that is used to perform the sign-in operation.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.SignInHttpResult.Principal">
+            <summary>
+            Gets or sets the <see cref="T:System.Security.Claims.ClaimsPrincipal"/> containing the user claims.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.SignInHttpResult.Properties">
+            <summary>
+            Gets or sets the <see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the sign-in operation.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.SignInHttpResult.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc />
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution invokes <see cref="M:HttpContext.SignOutAsync"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult.#ctor">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult"/> with the default sign out scheme.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult.#ctor(Microsoft.AspNetCore.Authentication.AuthenticationProperties)">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult"/> with the default sign out scheme.
+            specified authentication scheme and <paramref name="properties"/>.
+            </summary>
+            <param name="properties"><see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the sign-out operation.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult"/> with the
+            specified authentication scheme.
+            </summary>
+            <param name="authenticationScheme">The authentication scheme to use when signing out the user.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult.#ctor(System.Collections.Generic.IList{System.String})">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult"/> with the
+            specified authentication schemes.
+            </summary>
+            <param name="authenticationSchemes">The authentication schemes to use when signing out the user.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult.#ctor(System.String,Microsoft.AspNetCore.Authentication.AuthenticationProperties)">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult"/> with the
+            specified authentication scheme and <paramref name="properties"/>.
+            </summary>
+            <param name="authenticationScheme">The authentication schemes to use when signing out the user.</param>
+            <param name="properties"><see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the sign-out operation.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult.#ctor(System.Collections.Generic.IList{System.String},Microsoft.AspNetCore.Authentication.AuthenticationProperties)">
+            <summary>
+            Initializes a new instance of <see cref="T:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult"/> with the
+            specified authentication schemes and <paramref name="properties"/>.
+            </summary>
+            <param name="authenticationSchemes">The authentication scheme to use when signing out the user.</param>
+            <param name="properties"><see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the sign-out operation.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult.AuthenticationSchemes">
+            <summary>
+            Gets the authentication schemes that are challenged.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult.Properties">
+            <summary>
+            Gets the <see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the sign-out operation.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc />
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.StatusCodeHttpResult">
+            <summary>
+            Represents an <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that when executed will
+            produce an HTTP response with the given response status code.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.StatusCodeHttpResult.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.StatusCodeHttpResult"/> class
+            with the given <paramref name="statusCode"/>.
+            </summary>
+            <param name="statusCode">The HTTP status code of the response.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.StatusCodeHttpResult.StatusCode">
+            <summary>
+            Gets the HTTP status code.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.StatusCodeHttpResult.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>
+            Sets the status code on the HTTP response.
+            </summary>
+            <param name="httpContext">The <see cref="T:Microsoft.AspNetCore.Http.HttpContext"/> for the current request.</param>
+            <returns>A task that represents the asynchronous execute operation.</returns>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult">
+            <summary>
+            Represents an <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that when executed will
+            produce an HTTP response with the No Unauthorized (401) status code.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult"/> class.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc />
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.UnprocessableEntity">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with Unprocessable Entity (422) status code.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.UnprocessableEntity.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.UnprocessableEntity"/> class with the values
+            provided.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.UnprocessableEntity.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status422UnprocessableEntity"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.UnprocessableEntity.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.UnprocessableEntity.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.UnprocessableEntity`1">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write an object to the response
+            with Unprocessable Entity (422) status code.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.UnprocessableEntity`1.#ctor(`0)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.AspNetCore.Http.HttpResults.UnprocessableEntity"/> class with the values
+            provided.
+            </summary>
+            <param name="value">The value to format in the entity body.</param>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.UnprocessableEntity`1.Value">
+            <summary>
+            Gets the object result.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.UnprocessableEntity`1.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status422UnprocessableEntity"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.UnprocessableEntity`1.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.UnprocessableEntity`1.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.HttpResults.ValidationProblem">
+            <summary>
+            An <see cref="T:Microsoft.AspNetCore.Http.IResult"/> that on execution will write Problem Details
+            HTTP API responses based on https://tools.ietf.org/html/rfc7807
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.ValidationProblem.ProblemDetails">
+            <summary>
+            Gets the <see cref="T:Microsoft.AspNetCore.Http.HttpValidationProblemDetails"/> instance.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.ValidationProblem.ContentType">
+            <summary>
+            Gets the value for the <c>Content-Type</c> header: <c>application/problem+json</c>.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.HttpResults.ValidationProblem.StatusCode">
+            <summary>
+            Gets the HTTP status code: <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ValidationProblem.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.HttpResults.ValidationProblem.PopulateMetadata(System.Reflection.MethodInfo,System.Collections.Generic.IList{System.Object},System.IServiceProvider)">
+            <summary>
+            Provides metadata for parameters to <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegates.
+            </summary>
+            <param name="method"></param>
+            <param name="metadata"></param>
+            <param name="services"></param>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.IContentTypeHttpResult">
+            <summary>
+            Defines a contract that represents the result of an HTTP endpoint
+            that contains a <see cref="P:Microsoft.AspNetCore.Http.IContentTypeHttpResult.ContentType"/>.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.IContentTypeHttpResult.ContentType">
+            <summary>
+            Gets the Content-Type header for the response.
+            </summary>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.INestedHttpResult">
+            <summary>
+            Defines a contract that represents the result of an HTTP endpoint
+            that contains a nested <see cref="T:Microsoft.AspNetCore.Http.IResult"/> type.
+            </summary>
+            <remarks>For example, <c>Results&lt;TResult1, TResult2&gt;</c> is an <see cref="T:Microsoft.AspNetCore.Http.INestedHttpResult"/> and will contain the returned <see cref="T:Microsoft.AspNetCore.Http.IResult"/>.</remarks>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.INestedHttpResult.Result">
+            <summary>
+            Gets the actual <see cref="T:Microsoft.AspNetCore.Http.IResult"/> returned by the <see cref="T:Microsoft.AspNetCore.Http.Endpoint"/> route handler delegate.
+            </summary>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.IStatusCodeHttpResult">
+            <summary>
+            Defines a contract that represents the result of an HTTP endpoint that contains a <see cref="P:Microsoft.AspNetCore.Http.IStatusCodeHttpResult.StatusCode"/>.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.IStatusCodeHttpResult.StatusCode">
+            <summary>
+            Gets the HTTP status code.
+            </summary>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.IValueHttpResult">
+            <summary>
+            Defines a contract that represents the result of an HTTP endpoint that contains an object <see cref="P:Microsoft.AspNetCore.Http.IValueHttpResult.Value"/>.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.IValueHttpResult.Value">
+            <summary>
+            Gets the object result.
+            </summary>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.IValueHttpResult`1">
+            <summary>
+            Defines a contract that represents the result of an HTTP endpoint that contains a <see cref="P:Microsoft.AspNetCore.Http.IValueHttpResult`1.Value"/>.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.IValueHttpResult`1.Value">
+            <summary>
+            Gets the object result.
+            </summary>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Http.TypedResults">
+            <summary>
+            A typed factory for <see cref="T:Microsoft.AspNetCore.Http.IResult"/> types in <see cref="N:Microsoft.AspNetCore.Http.HttpResults"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Challenge(Microsoft.AspNetCore.Authentication.AuthenticationProperties,System.Collections.Generic.IList{System.String})">
+            <summary>
+            Creates a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult"/> that on execution invokes <see cref="M:Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions.ChallengeAsync(Microsoft.AspNetCore.Http.HttpContext,System.String,Microsoft.AspNetCore.Authentication.AuthenticationProperties)" />.
+            <para>
+            The behavior of this method depends on the <see cref="T:Microsoft.AspNetCore.Authentication.IAuthenticationService"/> in use.
+            <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized"/> and <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden"/>
+            are among likely status results.
+            </para>
+            </summary>
+            <param name="properties"><see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the authentication
+            challenge.</param>
+            <param name="authenticationSchemes">The authentication schemes to challenge.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Forbid(Microsoft.AspNetCore.Authentication.AuthenticationProperties,System.Collections.Generic.IList{System.String})">
+            <summary>
+            Creates a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult"/> that on execution invokes <see cref="M:Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions.ForbidAsync(Microsoft.AspNetCore.Http.HttpContext,System.String,Microsoft.AspNetCore.Authentication.AuthenticationProperties)"/>.
+            <para>
+            By default, executing this result returns a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden"/>. Some authentication schemes, such as cookies,
+            will convert <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden"/> to a redirect to show a login page.
+            </para>
+            </summary>
+            <remarks>
+            Some authentication schemes, such as cookies, will convert <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden"/> to
+            a redirect to show a login page.
+            </remarks>
+            <param name="properties"><see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the authentication
+            challenge.</param>
+            <param name="authenticationSchemes">The authentication schemes to challenge.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ForbidHttpResult"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.SignIn(System.Security.Claims.ClaimsPrincipal,Microsoft.AspNetCore.Authentication.AuthenticationProperties,System.String)">
+            <summary>
+            Creates a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.SignInHttpResult"/> that on execution invokes <see cref="M:Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions.SignInAsync(Microsoft.AspNetCore.Http.HttpContext,System.String,System.Security.Claims.ClaimsPrincipal,Microsoft.AspNetCore.Authentication.AuthenticationProperties)" />.
+            </summary>
+            <param name="principal">The <see cref="T:System.Security.Claims.ClaimsPrincipal"/> containing the user claims.</param>
+            <param name="properties"><see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the sign-in operation.</param>
+            <param name="authenticationScheme">The authentication scheme to use for the sign-in operation.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.SignInHttpResult"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.SignOut(Microsoft.AspNetCore.Authentication.AuthenticationProperties,System.Collections.Generic.IList{System.String})">
+            <summary>
+            Creates a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult"/> that on execution invokes <see cref="M:Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions.SignOutAsync(Microsoft.AspNetCore.Http.HttpContext,System.String,Microsoft.AspNetCore.Authentication.AuthenticationProperties)" />.
+            </summary>
+            <param name="properties"><see cref="T:Microsoft.AspNetCore.Authentication.AuthenticationProperties"/> used to perform the sign-out operation.</param>
+            <param name="authenticationSchemes">The authentication scheme to use for the sign-out operation.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.SignOutHttpResult"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Content(System.String,System.String,System.Text.Encoding)">
+            <summary>
+            Writes the <paramref name="content"/> string to the HTTP response.
+            <para>
+            This is an alias for <see cref="M:Microsoft.AspNetCore.Http.TypedResults.Text(System.String,System.String,System.Text.Encoding)"/>.
+            </para>
+            </summary>
+            <remarks>
+            If encoding is provided by both the 'charset' and the <paramref name="contentEncoding"/> parameters, then
+            the <paramref name="contentEncoding"/> parameter is chosen as the final encoding.
+            </remarks>
+            <param name="content">The content to write to the response.</param>
+            <param name="contentType">The content type (MIME type).</param>
+            <param name="contentEncoding">The content encoding.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult"/> object for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Text(System.String,System.String,System.Text.Encoding)">
+            <summary>
+            Writes the <paramref name="content"/> string to the HTTP response.
+            <para>
+            This is an alias for <see cref="M:Microsoft.AspNetCore.Http.TypedResults.Content(System.String,System.String,System.Text.Encoding)"/>.
+            </para>
+            </summary>
+            <remarks>
+            If encoding is provided by both the 'charset' and the <paramref name="contentEncoding"/> parameters, then
+            the <paramref name="contentEncoding"/> parameter is chosen as the final encoding.
+            </remarks>
+            <param name="content">The content to write to the response.</param>
+            <param name="contentType">The content type (MIME type).</param>
+            <param name="contentEncoding">The content encoding.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult"/> object for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Content(System.String,Microsoft.Net.Http.Headers.MediaTypeHeaderValue)">
+            <summary>
+            Writes the <paramref name="content"/> string to the HTTP response.
+            </summary>
+            <param name="content">The content to write to the response.</param>
+            <param name="contentType">The content type (MIME type).</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult"/> object for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Json``1(``0,System.Text.Json.JsonSerializerOptions,System.String,System.Nullable{System.Int32})">
+            <summary>
+            Creates a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.JsonHttpResult`1"/> that serializes the specified <paramref name="data"/> object to JSON.
+            </summary>
+            <remarks>Callers should cache an instance of serializer settings to avoid
+            recreating cached data with each call.</remarks>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+            <param name="data">The object to write as JSON.</param>
+            <param name="options">The serializer options to use when serializing the value.</param>
+            <param name="contentType">The content-type to set on the response.</param>
+            <param name="statusCode">The status code to set on the response.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.JsonHttpResult`1"/> that serializes the specified <paramref name="data"/>
+            as JSON format for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Redirect(System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Redirects to the specified <paramref name="url"/>.
+            <list type="bullet">
+            <item>When <paramref name="permanent"/> and <paramref name="preserveMethod"/> are set, sets the <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status308PermanentRedirect"/> status code.</item>
+            <item>When <paramref name="preserveMethod"/> is set, sets the <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status307TemporaryRedirect"/> status code.</item>
+            <item>When <paramref name="permanent"/> is set, sets the <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status301MovedPermanently"/> status code.</item>
+            <item>Otherwise, configures <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status302Found"/>.</item>
+            </list>
+            </summary>
+            <param name="url">The URL to redirect to.</param>
+            <param name="permanent">Specifies whether the redirect should be permanent (301) or temporary (302).</param>
+            <param name="preserveMethod">If set to true, make the temporary redirect (307) or permanent redirect (308) preserve the initial request method.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.LocalRedirect(System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Redirects to the specified <paramref name="localUrl"/>.
+            <list type="bullet">
+            <item>When <paramref name="permanent"/> and <paramref name="preserveMethod"/> are set, sets the <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status308PermanentRedirect"/> status code.</item>
+            <item>When <paramref name="preserveMethod"/> is set, sets the <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status307TemporaryRedirect"/> status code.</item>
+            <item>When <paramref name="permanent"/> is set, sets the <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status301MovedPermanently"/> status code.</item>
+            <item>Otherwise, configures <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status302Found"/>.</item>
+            </list>
+            </summary>
+            <param name="localUrl">The local URL to redirect to.</param>
+            <param name="permanent">Specifies whether the redirect should be permanent (301) or temporary (302).</param>
+            <param name="preserveMethod">If set to true, make the temporary redirect (307) or permanent redirect (308) preserve the initial request method.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.RedirectToRoute(System.String,System.Object,System.Boolean,System.Boolean,System.String)">
+            <summary>
+            Redirects to the specified route.
+            <list type="bullet">
+            <item>When <paramref name="permanent"/> and <paramref name="preserveMethod"/> are set, sets the <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status308PermanentRedirect"/> status code.</item>
+            <item>When <paramref name="preserveMethod"/> is set, sets the <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status307TemporaryRedirect"/> status code.</item>
+            <item>When <paramref name="permanent"/> is set, sets the <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status301MovedPermanently"/> status code.</item>
+            <item>Otherwise, configures <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status302Found"/>.</item>
+            </list>
+            </summary>
+            <param name="routeName">The name of the route.</param>
+            <param name="routeValues">The parameters for a route.</param>
+            <param name="permanent">Specifies whether the redirect should be permanent (301) or temporary (302).</param>
+            <param name="preserveMethod">If set to true, make the temporary redirect (307) or permanent redirect (308) preserve the initial request method.</param>
+            <param name="fragment">The fragment to add to the URL.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.RedirectToRouteHttpResult"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.StatusCode(System.Int32)">
+            <summary>
+            Creates a <see cref="T:Microsoft.AspNetCore.Http.HttpResults.StatusCodeHttpResult"/> object by specifying a <paramref name="statusCode"/>.
+            </summary>
+            <param name="statusCode">The status code to set on the response.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.StatusCodeHttpResult"/> object for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.NotFound">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound"/> response.
+            </summary>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.NotFound"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.NotFound``1(``0)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound"/> response.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+            <param name="value">The value to be included in the HTTP response body.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.NotFound`1"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Unauthorized">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized"/> response.
+            </summary>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.BadRequest">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest"/> response.
+            </summary>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.BadRequest"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.BadRequest``1(``0)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest"/> response.
+            </summary>
+            <typeparam name="TValue">The type of error object that will be JSON serialized to the response body.</typeparam>
+            <param name="error">The value to be included in the HTTP response body.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.BadRequest`1"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Conflict">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status409Conflict"/> response.
+            </summary>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Conflict"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Conflict``1(``0)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status409Conflict"/> response.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+            <param name="error">The value to be included in the HTTP response body.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Conflict`1"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.NoContent">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status204NoContent"/> response.
+            </summary>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.NoContent"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Ok">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/> response.
+            </summary>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Ok"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Ok``1(``0)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status200OK"/> response.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+            <param name="value">The value to be included in the HTTP response body.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Ok`1"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.UnprocessableEntity">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status422UnprocessableEntity"/> response.
+            </summary>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.UnprocessableEntity"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.UnprocessableEntity``1(``0)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status422UnprocessableEntity"/> response.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+            <param name="error">The value to be included in the HTTP response body.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.UnprocessableEntity`1"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Problem(System.String,System.String,System.Nullable{System.Int32},System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            Produces a <see cref="T:Microsoft.AspNetCore.Mvc.ProblemDetails"/> response.
+            </summary>
+            <param name="statusCode">The value for <see cref="P:Microsoft.AspNetCore.Mvc.ProblemDetails.Status" />.</param>
+            <param name="detail">The value for <see cref="P:Microsoft.AspNetCore.Mvc.ProblemDetails.Detail" />.</param>
+            <param name="instance">The value for <see cref="P:Microsoft.AspNetCore.Mvc.ProblemDetails.Instance" />.</param>
+            <param name="title">The value for <see cref="P:Microsoft.AspNetCore.Mvc.ProblemDetails.Title" />.</param>
+            <param name="type">The value for <see cref="P:Microsoft.AspNetCore.Mvc.ProblemDetails.Type" />.</param>
+            <param name="extensions">The value for <see cref="P:Microsoft.AspNetCore.Mvc.ProblemDetails.Extensions" />.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Problem(Microsoft.AspNetCore.Mvc.ProblemDetails)">
+            <summary>
+            Produces a <see cref="T:Microsoft.AspNetCore.Mvc.ProblemDetails"/> response.
+            </summary>
+            <param name="problemDetails">The <see cref="T:Microsoft.AspNetCore.Mvc.ProblemDetails"/>  object to produce a response from.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.ValidationProblem(System.Collections.Generic.IDictionary{System.String,System.String[]},System.String,System.String,System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest"/> response with an <see cref="T:Microsoft.AspNetCore.Http.HttpValidationProblemDetails"/> value.
+            </summary>
+            <param name="errors">One or more validation errors.</param>
+            <param name="detail">The value for <see cref="P:Microsoft.AspNetCore.Mvc.ProblemDetails.Detail" />.</param>
+            <param name="instance">The value for <see cref="P:Microsoft.AspNetCore.Mvc.ProblemDetails.Instance" />.</param>
+            <param name="title">The value for <see cref="P:Microsoft.AspNetCore.Mvc.ProblemDetails.Title" />. Defaults to "One or more validation errors occurred."</param>
+            <param name="type">The value for <see cref="P:Microsoft.AspNetCore.Mvc.ProblemDetails.Type" />.</param>
+            <param name="extensions">The value for <see cref="P:Microsoft.AspNetCore.Mvc.ProblemDetails.Extensions" />.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.ValidationProblem"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Created(System.String)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status201Created"/> response.
+            </summary>
+            <param name="uri">The URI at which the content has been created.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Created"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Created``1(System.String,``0)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status201Created"/> response.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+            <param name="uri">The URI at which the content has been created.</param>
+            <param name="value">The value to be included in the HTTP response body.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Created`1"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Created(System.Uri)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status201Created"/> response.
+            </summary>
+            <param name="uri">The URI at which the content has been created.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Created"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Created``1(System.Uri,``0)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status201Created"/> response.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+            <param name="uri">The URI at which the content has been created.</param>
+            <param name="value">The value to be included in the HTTP response body.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Created`1"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.CreatedAtRoute(System.String,System.Object)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status201Created"/> response.
+            </summary>
+            <param name="routeName">The name of the route to use for generating the URL.</param>
+            <param name="routeValues">The route data to use for generating the URL.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.CreatedAtRoute``1(``0,System.String,System.Object)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status201Created"/> response.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+            <param name="routeName">The name of the route to use for generating the URL.</param>
+            <param name="routeValues">The route data to use for generating the URL.</param>
+            <param name="value">The value to be included in the HTTP response body.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.CreatedAtRoute`1"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Accepted(System.String)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status202Accepted"/> response.
+            </summary>
+            <param name="uri">The URI with the location at which the status of requested content can be monitored.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Accepted"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Accepted``1(System.String,``0)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status202Accepted"/> response.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+            <param name="uri">The URI with the location at which the status of requested content can be monitored.</param>
+            <param name="value">The value to be included in the HTTP response body.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Accepted`1"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Accepted(System.Uri)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status202Accepted"/> response.
+            </summary>
+            <param name="uri">The URI with the location at which the status of requested content can be monitored.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Accepted"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.Accepted``1(System.Uri,``0)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status202Accepted"/> response.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+            <param name="uri">The URI with the location at which the status of requested content can be monitored.</param>
+            <param name="value">The value to be included in the HTTP response body.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.Accepted`1"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.AcceptedAtRoute(System.String,System.Object)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status202Accepted"/> response.
+            </summary>
+            <param name="routeName">The name of the route to use for generating the URL.</param>
+            <param name="routeValues">The route data to use for generating the URL.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute"/> for the response.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Http.TypedResults.AcceptedAtRoute``1(``0,System.String,System.Object)">
+            <summary>
+            Produces a <see cref="F:Microsoft.AspNetCore.Http.StatusCodes.Status202Accepted"/> response.
+            </summary>
+            <typeparam name="TValue">The type of object that will be JSON serialized to the response body.</typeparam>
+            <param name="routeName">The name of the route to use for generating the URL.</param>
+            <param name="routeValues">The route data to use for generating the URL.</param>
+            <param name="value">The value to be included in the HTTP response body.</param>
+            <returns>The created <see cref="T:Microsoft.AspNetCore.Http.HttpResults.AcceptedAtRoute`1"/> for the response.</returns>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Http.TypedResults.Empty">
+            <summary>
+            Produces an empty result response, that when executed will do nothing.
+            </summary>
+        </member>
+    </members>
+</doc>
