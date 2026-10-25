@@ -3,8 +3,9 @@ namespace GameStore.Api.Services;
 public enum RegistrationError
 {
     None,
+    ConfirmationEmailUnavailable,
     UsernameRequired,
-    UsernameLengthInvalid,
+    UsernameInvalid,
     PasswordRequired,
     PasswordTooShort,
     PasswordPolicyFailed,

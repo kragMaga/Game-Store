@@ -10,6 +10,7 @@ using Xunit;
 
 namespace GameStore.Api.Tests;
 
+[Collection("API integration")]
 public sealed class ApiErrorResponseTests
 {
     [Fact]
@@ -44,7 +45,7 @@ public sealed class ApiErrorResponseTests
         {
             username = "player-one",
             email = "player-one@example.test",
-            password = "Password123"
+            password = "Cedar-Moon-River-593!"
         });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -64,7 +65,7 @@ public sealed class ApiErrorResponseTests
         {
             username = "CaseUser",
             email = "caseuser@example.test",
-            password = "Password123"
+            password = "Cedar-Moon-River-593!"
         });
         Assert.Equal(HttpStatusCode.OK, registration.StatusCode);
         var confirmation = emailSender.SentMessages.Single();
@@ -73,7 +74,7 @@ public sealed class ApiErrorResponseTests
         var unconfirmedLogin = await client.PostAsJsonAsync("/auth/login", new
         {
             username = "caseuser",
-            password = "Password123"
+            password = "Cedar-Moon-River-593!"
         });
         Assert.Equal(HttpStatusCode.Unauthorized, unconfirmedLogin.StatusCode);
 
@@ -88,7 +89,7 @@ public sealed class ApiErrorResponseTests
         {
             username = "caseuser",
             email = "another@example.test",
-            password = "Password123"
+            password = "Cedar-Moon-River-593!"
         });
         using var problem = await AssertProblemAsync(caseVariant, HttpStatusCode.Conflict, "Username is already taken");
 
@@ -96,14 +97,14 @@ public sealed class ApiErrorResponseTests
         {
             username = "different-user",
             email = "CASEUSER@example.test",
-            password = "Password123"
+            password = "Cedar-Moon-River-593!"
         });
         using var duplicateEmailProblem = await AssertProblemAsync(duplicateEmail, HttpStatusCode.Conflict, "Email address is already in use");
 
         var login = await client.PostAsJsonAsync("/auth/login", new
         {
             username = "CASEUSER",
-            password = "Password123"
+            password = "Cedar-Moon-River-593!"
         });
         Assert.Equal(HttpStatusCode.OK, login.StatusCode);
     }
@@ -119,7 +120,7 @@ public sealed class ApiErrorResponseTests
         {
             username = "locked-user",
             email = "locked@example.test",
-            password = "Password123"
+            password = "Cedar-Moon-River-593!"
         });
         Assert.Equal(HttpStatusCode.OK, registration.StatusCode);
         var confirmationToken = ExtractEmailToken(emailSender.SentMessages.Last().Body);
@@ -143,9 +144,14 @@ public sealed class ApiErrorResponseTests
         using var blockedLogin = await client.PostAsJsonAsync("/auth/login", new
         {
             username = "locked-user",
-            password = "Password123"
+            password = "Cedar-Moon-River-593!"
         });
-        Assert.Equal(HttpStatusCode.Unauthorized, blockedLogin.StatusCode);
+        Assert.Equal(HttpStatusCode.TooManyRequests, blockedLogin.StatusCode);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<GameStore.Api.Data.GameStoreContext>();
+            Assert.True((await db.Users.SingleAsync(user => user.UserName == "locked-user")).LockoutEnd > DateTimeOffset.UtcNow);
+        }
 
         using var forgotResponse = await client.PostAsJsonAsync("/auth/password/forgot", new { email = "locked@example.test" });
         Assert.Equal(HttpStatusCode.Accepted, forgotResponse.StatusCode);
@@ -159,12 +165,11 @@ public sealed class ApiErrorResponseTests
         });
         Assert.Equal(HttpStatusCode.NoContent, resetResponse.StatusCode);
 
-        using var successfulLogin = await client.PostAsJsonAsync("/auth/login", new
-        {
-            username = "locked-user",
-            password = "NewPassword456"
-        });
-        Assert.Equal(HttpStatusCode.OK, successfulLogin.StatusCode);
+        // The per-IP login window remains exhausted even after account recovery.
+        using var recoveredScope = factory.Services.CreateScope();
+        var recoveredLogin = await recoveredScope.ServiceProvider.GetRequiredService<GameStore.Api.Services.AuthService>()
+            .LoginAsync(new GameStore.Api.Dtos.LoginDto("locked-user", "NewPassword456"));
+        Assert.NotNull(recoveredLogin?.Tokens);
     }
 
     [Fact]
@@ -178,11 +183,11 @@ public sealed class ApiErrorResponseTests
         {
             username = "role-user",
             email = "role@example.test",
-            password = "Password123"
+            password = "Cedar-Moon-River-593!"
         });
         var confirmationToken = ExtractEmailToken(emailSender.SentMessages.Last().Body);
         await client.PostAsJsonAsync("/auth/confirm-email", new { email = "role@example.test", token = confirmationToken });
-        using var targetLogin = await LoginAsUserAsync(client, "role-user", "Password123");
+        using var targetLogin = await LoginAsUserAsync(client, "role-user", "Cedar-Moon-River-593!");
         var targetAccessToken = targetLogin.RootElement.GetProperty("accessToken").GetString();
 
         using var adminClient = factory.CreateClient();
@@ -209,12 +214,12 @@ public sealed class ApiErrorResponseTests
         {
             username = "profile-user",
             email = "profile@example.test",
-            password = "Password123"
+            password = "Cedar-Moon-River-593!"
         });
         var confirmationToken = ExtractEmailToken(emailSender.SentMessages.Last().Body);
         await client.PostAsJsonAsync("/auth/confirm-email", new { email = "profile@example.test", token = confirmationToken });
 
-        using var login = await LoginAsUserAsync(client, "profile-user", "Password123");
+        using var login = await LoginAsUserAsync(client, "profile-user", "Cedar-Moon-River-593!");
         var oldAccessToken = login.RootElement.GetProperty("accessToken").GetString();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", oldAccessToken);
 
@@ -223,19 +228,19 @@ public sealed class ApiErrorResponseTests
         using var staleUsernameToken = await client.GetAsync("/auth/me");
         Assert.Equal(HttpStatusCode.Unauthorized, staleUsernameToken.StatusCode);
 
-        using var renamedLogin = await LoginAsUserAsync(client, "PROFILE-RENAMED", "Password123");
+        using var renamedLogin = await LoginAsUserAsync(client, "PROFILE-RENAMED", "Cedar-Moon-River-593!");
         var currentAccessToken = renamedLogin.RootElement.GetProperty("accessToken").GetString();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", currentAccessToken);
         using var passwordChange = await client.PutAsJsonAsync("/auth/me/password", new
         {
-            currentPassword = "Password123",
+            currentPassword = "Cedar-Moon-River-593!",
             newPassword = "DifferentPassword456"
         });
         Assert.Equal(HttpStatusCode.NoContent, passwordChange.StatusCode);
         using var stalePasswordToken = await client.GetAsync("/auth/me");
         Assert.Equal(HttpStatusCode.Unauthorized, stalePasswordToken.StatusCode);
 
-        using var oldPasswordLogin = await client.PostAsJsonAsync("/auth/login", new { username = "profile-renamed", password = "Password123" });
+        using var oldPasswordLogin = await client.PostAsJsonAsync("/auth/login", new { username = "profile-renamed", password = "Cedar-Moon-River-593!" });
         Assert.Equal(HttpStatusCode.Unauthorized, oldPasswordLogin.StatusCode);
         using var newPasswordLogin = await LoginAsUserAsync(client, "profile-renamed", "DifferentPassword456");
         Assert.True(newPasswordLogin.RootElement.TryGetProperty("accessToken", out _));
@@ -315,20 +320,20 @@ public sealed class ApiErrorResponseTests
         {
             username = "mfa-user",
             email = "mfa@example.test",
-            password = "Password123"
+            password = "Cedar-Moon-River-593!"
         });
         var confirmationToken = ExtractEmailToken(emailSender.SentMessages.Last().Body);
         await client.PostAsJsonAsync("/auth/confirm-email", new { email = "mfa@example.test", token = confirmationToken });
-        using var login = await LoginAsUserAsync(client, "mfa-user", "Password123");
+        using var login = await LoginAsUserAsync(client, "mfa-user", "Cedar-Moon-River-593!");
         var accessToken = login.RootElement.GetProperty("accessToken").GetString();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-        using var setup = await client.PostAsJsonAsync("/auth/me/mfa/setup", new { currentPassword = "Password123" });
+        using var setup = await client.PostAsJsonAsync("/auth/me/mfa/setup", new { currentPassword = "Cedar-Moon-River-593!" });
         Assert.True(setup.IsSuccessStatusCode, await setup.Content.ReadAsStringAsync());
         using var setupBody = await JsonDocument.ParseAsync(await setup.Content.ReadAsStreamAsync());
         var sharedKey = setupBody.RootElement.GetProperty("sharedKey").GetString()!;
 
-        using var refreshedLogin = await LoginAsUserAsync(client, "mfa-user", "Password123");
+        using var refreshedLogin = await LoginAsUserAsync(client, "mfa-user", "Cedar-Moon-River-593!");
         accessToken = refreshedLogin.RootElement.GetProperty("accessToken").GetString();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
@@ -338,7 +343,7 @@ public sealed class ApiErrorResponseTests
         var recoveryCode = enableBody.RootElement.GetProperty("recoveryCodes")[0].GetString()!;
         client.DefaultRequestHeaders.Authorization = null;
 
-        using var mfaRequired = await client.PostAsJsonAsync("/auth/login", new { username = "mfa-user", password = "Password123" });
+        using var mfaRequired = await client.PostAsJsonAsync("/auth/login", new { username = "mfa-user", password = "Cedar-Moon-River-593!" });
         Assert.Equal(HttpStatusCode.Accepted, mfaRequired.StatusCode);
         using var challenge = await JsonDocument.ParseAsync(await mfaRequired.Content.ReadAsStreamAsync());
         var challengeToken = challenge.RootElement.GetProperty("challengeToken").GetString()!;
@@ -346,7 +351,7 @@ public sealed class ApiErrorResponseTests
         using var mfaLogin = await client.PostAsJsonAsync("/auth/login/mfa", new { challengeToken, code = recoveryCode });
         mfaLogin.EnsureSuccessStatusCode();
 
-        using var secondChallengeResponse = await client.PostAsJsonAsync("/auth/login", new { username = "mfa-user", password = "Password123" });
+        using var secondChallengeResponse = await client.PostAsJsonAsync("/auth/login", new { username = "mfa-user", password = "Cedar-Moon-River-593!" });
         using var secondChallenge = await JsonDocument.ParseAsync(await secondChallengeResponse.Content.ReadAsStreamAsync());
         using var reusedRecoveryCode = await client.PostAsJsonAsync("/auth/login/mfa", new
         {
@@ -366,14 +371,14 @@ public sealed class ApiErrorResponseTests
         {
             username = "Admin",
             email = "duplicate@example.test",
-            password = "Password123"
+            password = "Cedar-Moon-River-593!"
         });
 
         using var problem = await AssertProblemAsync(response, HttpStatusCode.Conflict, "Username is already taken");
     }
 
     [Theory]
-    [InlineData("ab", "Password123", "Invalid username")]
+    [InlineData("ab", "Cedar-Moon-River-593!", "Invalid username")]
     [InlineData("player1", "short", "Password is too short")]
     public async Task Register_with_invalid_fields_returns_actionable_problem(
         string username,
@@ -808,7 +813,12 @@ public sealed class ApiErrorResponseTests
         var tokenStart = body.IndexOf("\n\n", StringComparison.Ordinal) + 2;
         var tokenEnd = body.IndexOf("\n\n", tokenStart, StringComparison.Ordinal);
         Assert.True(tokenStart >= 2 && tokenEnd > tokenStart, "The test email did not contain a token.");
-        return body[tokenStart..tokenEnd].Trim();
+        var value = body[tokenStart..tokenEnd].Trim();
+        if (Uri.TryCreate(value, UriKind.Absolute, out var confirmationLink))
+        {
+            return Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(confirmationLink.Fragment.TrimStart('#'))["token"].ToString();
+        }
+        return value; // Password-reset emails still contain a token.
     }
 
     private static string GenerateTotp(string base32Secret)

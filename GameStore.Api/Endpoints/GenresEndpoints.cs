@@ -20,15 +20,15 @@ public static class GenresEndpoints
             int pageSize = 10,
             string? search = null) =>
         {
-            if (page < 1 || pageSize is < 1 or > 100)
+            if (page is < 1 or > 1000 || pageSize is < 1 or > 100 || (long)(page - 1) * pageSize > 10_000)
             {
                 return Results.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Invalid pagination parameters",
-                    detail: "Page must be at least 1 and pageSize must be between 1 and 100.");
+                    detail: "Page must be between 1 and 1000, pageSize between 1 and 100, and the requested offset cannot exceed 10000.");
             }
 
-            var skip = (int)Math.Min((long)(page - 1) * pageSize, int.MaxValue);
+            var skip = (page - 1) * pageSize;
 
             var normalizedSearch = search?.Trim().ToUpperInvariant() ?? string.Empty;
             var cacheKey = $"genres:{page}:{pageSize}:{Uri.EscapeDataString(normalizedSearch)}";

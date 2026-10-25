@@ -9,5 +9,6 @@ public enum AccountOperationResult
     InvalidEmail,
     EmailAlreadyInUse,
     CurrentPasswordIncorrect,
-    PasswordPolicyFailed
+    PasswordPolicyFailed,
+    EmailDeliveryFailed
 }

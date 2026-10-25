@@ -32,7 +32,7 @@ public class AuthService(
         if (username.Length is < 5 or > 20 ||
             !username.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_' or '.'))
         {
-            return RegistrationError.UsernameLengthInvalid;
+            return RegistrationError.UsernameInvalid;
         }
 
         if (string.IsNullOrWhiteSpace(request.Email))
@@ -94,11 +94,29 @@ public class AuthService(
         {
             dbContext.Entry(user).State = EntityState.Detached;
             logger.LogWarning("Registration rejected by a database uniqueness constraint");
-            var duplicateName = await dbContext.Users.AnyAsync(candidate => candidate.NormalizedUserName == normalizedUsername);
-            return duplicateName ? RegistrationError.UsernameAlreadyTaken : RegistrationError.EmailAlreadyTaken;
+            // A primary-key collision does not identify a username or email conflict.
+            if (exception.InnerException is SqliteException { SqliteExtendedErrorCode: 1555 })
+            {
+                return RegistrationError.RegistrationFailed;
+            }
+
+            if (await dbContext.Users.AnyAsync(candidate => candidate.NormalizedUserName == normalizedUsername))
+            {
+                return RegistrationError.UsernameAlreadyTaken;
+            }
+
+            if (await dbContext.Users.AnyAsync(candidate => candidate.NormalizedEmail == normalizedEmail))
+            {
+                return RegistrationError.EmailAlreadyTaken;
+            }
+
+            return RegistrationError.RegistrationFailed;
         }
         if (!createResult.Succeeded)
         {
+            logger.LogWarning("Identity registration failed with error codes: {IdentityErrorCodes}",
+                string.Join(", ", createResult.Errors.Select(error => error.Code).Distinct()));
+
             if (createResult.Errors.Any(error => error.Code == "DuplicateEmail"))
             {
                 return RegistrationError.EmailAlreadyTaken;
@@ -118,10 +136,10 @@ public class AuthService(
             return RegistrationError.RegistrationFailed;
         }
 
-        await SendEmailConfirmationAsync(user);
-
         logger.LogInformation("Registered new customer account with user ID {UserId}", user.Id);
-        return RegistrationError.None;
+        return await TrySendEmailConfirmationAsync(user)
+            ? RegistrationError.None
+            : RegistrationError.ConfirmationEmailUnavailable;
     }
 
     public async Task<AuthLoginResult?> LoginAsync(LoginDto request)
@@ -299,36 +317,59 @@ public class AuthService(
         return recoveryCodes?.ToArray() ?? [];
     }
 
-    public async Task<bool> DisableMfaAsync(int userId, string currentPassword, string code)
+    public async Task<MfaDisableResult> DisableMfaAsync(int userId, string currentPassword, string code)
     {
-        var user = await userManager.FindByIdAsync(userId.ToString());
-        if (user is null || !await userManager.CheckPasswordAsync(user, currentPassword) ||
-            !await userManager.GetTwoFactorEnabledAsync(user))
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+        try
         {
-            return false;
-        }
-
-        var normalizedCode = code.Replace(" ", string.Empty).Replace("-", string.Empty);
-        var validCode = await userManager.VerifyTwoFactorTokenAsync(user, TokenOptions.DefaultAuthenticatorProvider, normalizedCode);
-        if (!validCode)
-        {
-            var recoveryResult = await userManager.RedeemTwoFactorRecoveryCodeAsync(user, code.Trim());
-            if (!recoveryResult.Succeeded)
+            var user = await userManager.FindByIdAsync(userId.ToString());
+            if (user is null || !await userManager.CheckPasswordAsync(user, currentPassword) ||
+                !await userManager.GetTwoFactorEnabledAsync(user))
             {
-                return false;
+                return MfaDisableResult.InvalidCredentials;
             }
-        }
 
-        var result = await userManager.SetTwoFactorEnabledAsync(user, false);
-        if (!result.Succeeded)
+            var normalizedCode = code.Replace(" ", string.Empty).Replace("-", string.Empty);
+            var validCode = await userManager.VerifyTwoFactorTokenAsync(user, TokenOptions.DefaultAuthenticatorProvider, normalizedCode);
+            if (!validCode)
+            {
+                var recoveryResult = await userManager.RedeemTwoFactorRecoveryCodeAsync(user, code.Trim());
+                if (!recoveryResult.Succeeded)
+                {
+                    return MfaDisableResult.InvalidCredentials;
+                }
+            }
+
+            if (!CheckMfaDisableStep(await userManager.SetTwoFactorEnabledAsync(user, false), "DisableTwoFactor", userId))
+                return MfaDisableResult.Failed;
+            if (!CheckMfaDisableStep(await userManager.ResetAuthenticatorKeyAsync(user), "ResetAuthenticatorKey", userId))
+                return MfaDisableResult.Failed;
+            if (!CheckMfaDisableStep(await userManager.UpdateSecurityStampAsync(user), "UpdateSecurityStamp", userId))
+                return MfaDisableResult.Failed;
+
+            await RevokeAllSessionsAsync(user.Id);
+            // Revocation throws on database failure. Verify persisted state before committing.
+            if (await dbContext.AuthSessions.AnyAsync(session => session.UserId == userId && session.RevokedAtUtc == null) ||
+                await dbContext.RefreshTokens.AnyAsync(token => token.UserId == userId && token.RevokedAtUtc == null))
+                return MfaDisableResult.Failed;
+
+            await transaction.CommitAsync();
+            logger.LogInformation("Disabled MFA and revoked sessions for user ID {UserId}", userId);
+            return MfaDisableResult.Success;
+        }
+        finally
         {
-            return false;
+            // A failed operation may have mutated tracked Identity objects before rollback.
+            dbContext.ChangeTracker.Clear();
         }
+    }
 
-        await userManager.ResetAuthenticatorKeyAsync(user);
-        await userManager.UpdateSecurityStampAsync(user);
-        await RevokeAllSessionsAsync(user.Id);
-        return true;
+    private bool CheckMfaDisableStep(IdentityResult result, string step, int userId)
+    {
+        if (result.Succeeded) return true;
+        logger.LogWarning("MFA disable failed at {Step} for user ID {UserId}. Identity error codes: {IdentityErrorCodes}",
+            step, userId, string.Join(", ", result.Errors.Select(error => error.Code).Distinct()));
+        return false;
     }
 
     private async Task<AuthTokensDto> IssueTokensAsync(User user)
@@ -504,14 +545,13 @@ public class AuthService(
             return false;
         }
 
-        await SendEmailConfirmationAsync(user);
-        return true;
+        return await TrySendEmailConfirmationAsync(user);
     }
 
     public async Task<AccountOperationResult> UpdateEmailAsync(int userId, string? requestedEmail)
     {
         var email = requestedEmail?.Trim();
-        if (string.IsNullOrWhiteSpace(email) ||
+        if (string.IsNullOrWhiteSpace(email) || email.Length > 256 ||
             !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(email))
         {
             return AccountOperationResult.InvalidEmail;
@@ -529,20 +569,66 @@ public class AuthService(
             return AccountOperationResult.EmailAlreadyInUse;
         }
 
-        var result = await userManager.SetEmailAsync(user, email);
-        if (!result.Succeeded)
+        // Keep the current confirmed address and sessions until the recipient proves ownership.
+        try
         {
-            return result.Errors.Any(error => error.Code == "DuplicateEmail")
-                ? AccountOperationResult.EmailAlreadyInUse
-                : AccountOperationResult.InvalidEmail;
+            var token = await userManager.GenerateChangeEmailTokenAsync(user, email);
+            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+            var link = CreateConfirmationUrl(email, encodedToken, user.Id);
+            await emailSender.SendAsync(email, "Confirm your new Game Store email address",
+                $"Click the link below to confirm your new email address. Your current address stays active until you confirm:\n\n{link}\n\nIf you did not request this change, ignore this message.");
+            return AccountOperationResult.Success;
         }
+        catch (Exception exception)
+        {
+            logger.LogWarning("Email change confirmation delivery failed for user ID {UserId}. Failure type: {FailureType}",
+                user.Id, exception.GetType().Name);
+            return AccountOperationResult.EmailDeliveryFailed;
+        }
+    }
 
-        user.EmailConfirmed = false;
-        await userManager.UpdateSecurityStampAsync(user);
-        await userManager.UpdateAsync(user);
-        await SendEmailConfirmationAsync(user);
-        await RevokeAllSessionsAsync(userId);
-        return AccountOperationResult.Success;
+    public async Task<bool> ConfirmEmailChangeAsync(int userId, string? email, string? token)
+    {
+        email = email?.Trim();
+        if (userId <= 0 || string.IsNullOrWhiteSpace(email) || email.Length > 256 ||
+            !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(email) || string.IsNullOrWhiteSpace(token))
+            return false;
+
+        string decodedToken;
+        try { decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token)); }
+        catch (FormatException) { return false; }
+
+        await dbContext.Database.OpenConnectionAsync();
+        var connection = (SqliteConnection)dbContext.Database.GetDbConnection();
+        await using var sqliteTransaction = connection.BeginTransaction(deferred: false);
+        await using var transaction = await dbContext.Database.UseTransactionAsync(sqliteTransaction)
+            ?? throw new InvalidOperationException("Could not start the email change transaction.");
+        try
+        {
+            var user = await userManager.FindByIdAsync(userId.ToString());
+            if (user is null) return false;
+            var normalizedEmail = userManager.NormalizeEmail(email);
+            if (await dbContext.Users.AnyAsync(candidate => candidate.Id != userId && candidate.NormalizedEmail == normalizedEmail))
+                return false;
+
+            var result = await userManager.ChangeEmailAsync(user, email, decodedToken);
+            if (!result.Succeeded) return false;
+            if (!(await userManager.UpdateSecurityStampAsync(user)).Succeeded) return false;
+            await RevokeAllSessionsAsync(userId);
+            await transaction.CommitAsync();
+            logger.LogInformation("Confirmed email change and revoked sessions for user ID {UserId}", userId);
+            return true;
+        }
+        catch (DbUpdateException exception) when (
+            exception.InnerException is SqliteException { SqliteExtendedErrorCode: 2067 or 1555 })
+        {
+            logger.LogWarning("Email change rejected by a database uniqueness constraint for user ID {UserId}", userId);
+            return false;
+        }
+        finally
+        {
+            await dbContext.Database.CloseConnectionAsync();
+        }
     }
 
     public async Task<bool> ConfirmEmailAsync(string? email, string? token)
@@ -640,6 +726,22 @@ public class AuthService(
         }
     }
 
+    private async Task<bool> TrySendEmailConfirmationAsync(User user)
+    {
+        try
+        {
+            await SendEmailConfirmationAsync(user);
+            return true;
+        }
+        catch (Exception exception)
+        {
+            // Provider exception messages may include addresses or message contents.
+            logger.LogWarning("Confirmation email could not be delivered for user ID {UserId}. Failure type: {FailureType}",
+                user.Id, exception.GetType().Name);
+            return false;
+        }
+    }
+
     private async Task SendEmailConfirmationAsync(User user)
     {
         if (string.IsNullOrWhiteSpace(user.Email))
@@ -649,10 +751,29 @@ public class AuthService(
 
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
         var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+        var confirmationUrl = CreateConfirmationUrl(user.Email, encodedToken);
         await emailSender.SendAsync(
             user.Email,
             "Welcome to Game Store — confirm your account",
-            $"Your Game Store registration was successful. Confirm your email by sending this token and email to POST /auth/confirm-email:\n\n{encodedToken}\n\nIf you did not create this account, ignore this message.");
+            $"Your Game Store registration was successful. Click the link below to confirm your email address:\n\n{confirmationUrl}\n\nIf you did not create this account, ignore this message.");
+    }
+
+    private string CreateConfirmationUrl(string email, string encodedToken, int? userId = null)
+    {
+        var pageUrl = configuration["Email:ConfirmationPageUrl"];
+        if (!Uri.TryCreate(pageUrl, UriKind.Absolute, out var pageUri) ||
+            pageUri.Scheme != Uri.UriSchemeHttps ||
+            !string.IsNullOrEmpty(pageUri.UserInfo) || !string.IsNullOrEmpty(pageUri.Fragment))
+        {
+            throw new InvalidOperationException("Email:ConfirmationPageUrl must be an absolute HTTPS frontend URL without credentials or a fragment.");
+        }
+
+        // Fragments stay in the browser rather than entering server access logs or Referer headers.
+        return new UriBuilder(pageUri)
+        {
+            Fragment = $"email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(encodedToken)}" +
+                (userId.HasValue ? $"&purpose=email-change&userId={userId.Value}" : "")
+        }.Uri.AbsoluteUri;
     }
 
     private async Task RevokeAllSessionsAsync(int userId)

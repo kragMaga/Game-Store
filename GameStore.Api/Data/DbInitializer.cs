@@ -10,7 +10,8 @@ public static class DbInitializer
         GameStoreContext dbContext,
         string adminUsername,
         string adminEmail,
-        string adminPassword)
+        string adminPassword,
+        IPasswordHasher<User> passwordHasher)
     {
         var username = adminUsername.Trim();
         if (username.Length is < 5 or > 20 ||
@@ -46,8 +47,6 @@ public static class DbInitializer
             LockoutEnabled = true,
             EmailConfirmed = true
         };
-
-        var passwordHasher = new PasswordHasher<User>();
 
         admin.PasswordHash = passwordHasher.HashPassword(admin, adminPassword);
 

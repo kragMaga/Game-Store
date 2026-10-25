@@ -29,16 +29,16 @@ public static class GameEndpoints
         {
             var logger = loggerFactory.CreateLogger("GameStore.Api.Endpoints.Games");
 
-            if (page < 1 || pageSize is < 1 or > 100)
+            if (page is < 1 or > 1000 || pageSize is < 1 or > 100 || (long)(page - 1) * pageSize > 10_000)
             {
                 logger.LogWarning("Game list request rejected because pagination values are invalid");
                 return Results.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Invalid pagination parameters",
-                    detail: "Page must be at least 1 and pageSize must be between 1 and 100.");
+                    detail: "Page must be between 1 and 1000, pageSize between 1 and 100, and the requested offset cannot exceed 10000.");
             }
 
-            var skip = (int)Math.Min((long)(page - 1) * pageSize, int.MaxValue);
+            var skip = (page - 1) * pageSize;
 
             if (minPrice < 0 || maxPrice < 0 ||
                 (minPrice.HasValue && maxPrice.HasValue && minPrice > maxPrice))

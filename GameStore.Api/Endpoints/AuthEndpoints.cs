@@ -20,14 +20,18 @@ public static class AuthEndpoints
             return result switch
             {
                 RegistrationError.None => Results.Ok(new { message = "User registered successfully." }),
+                RegistrationError.ConfirmationEmailUnavailable => Results.Ok(new
+                {
+                    message = "Account created, but the confirmation email could not be sent. Request another confirmation email using POST /auth/email/resend-confirmation."
+                }),
                 RegistrationError.UsernameRequired => Results.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Username is required",
                     detail: "Provide a username."),
-                RegistrationError.UsernameLengthInvalid => Results.Problem(
+                RegistrationError.UsernameInvalid => Results.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Invalid username",
-                    detail: "Username must be between 5 and 20 characters."),
+                    detail: "Use 5–20 ASCII letters, digits, periods, underscores, or hyphens."),
                 RegistrationError.PasswordRequired => Results.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Password is required",
@@ -39,7 +43,7 @@ public static class AuthEndpoints
                 RegistrationError.PasswordPolicyFailed => Results.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Password does not meet policy",
-                    detail: "Use at least 8 characters, including an uppercase letter, a lowercase letter, and a number."),
+                    detail: "Use at least 8 characters with uppercase, lowercase, and a number. Common or compromised passwords are rejected; retry later if password screening is unavailable."),
                 RegistrationError.UsernameAlreadyTaken => Results.Problem(
                     statusCode: StatusCodes.Status409Conflict,
                     title: "Username is already taken",
@@ -311,6 +315,18 @@ public static class AuthEndpoints
     .WithSummary("Resend an email confirmation")
     .RequireRateLimiting("auth");
 
+        app.MapPost("/auth/email/confirm-change", async (ConfirmEmailChangeDto request, AuthService authService) =>
+        {
+            var confirmed = await authService.ConfirmEmailChangeAsync(request.UserId, request.Email, request.Token);
+            return confirmed
+                ? Results.NoContent()
+                : Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Email change could not be confirmed",
+                    detail: "The link is invalid or expired, or the email address is no longer available.");
+        })
+            .WithTags("Authentication")
+            .WithSummary("Confirm a new email address")
+            .RequireRateLimiting("auth");
+
         app.MapPost("/auth/password/forgot", async (ForgotPasswordDto request, AuthService authService) =>
 {
     await authService.RequestPasswordResetAsync(request.Email);
@@ -400,7 +416,9 @@ public static class AuthEndpoints
             var result = await authService.UpdateEmailAsync(userId, request.Email);
             return result switch
             {
-                AccountOperationResult.Success => Results.Accepted(value: new { message = "Confirm the new email address before using recovery features." }),
+                AccountOperationResult.Success => Results.Accepted(value: new { message = "Check the new email address for a confirmation link. Your current email and sign-in remain active until you confirm." }),
+                AccountOperationResult.EmailDeliveryFailed => Results.Problem(statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Confirmation email could not be sent", detail: "Your current email and sign-in are unchanged. Try the email change again later."),
                 AccountOperationResult.InvalidEmail => Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid email address"),
                 AccountOperationResult.EmailAlreadyInUse => Results.Problem(statusCode: StatusCodes.Status409Conflict, title: "Email address is already in use"),
                 _ => Results.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Authentication required")
@@ -408,7 +426,7 @@ public static class AuthEndpoints
         })
             .WithTags("Authentication")
             .WithSummary("Add or update the current email address")
-            .WithDescription("The new email must be confirmed; active sessions are revoked for safety.")
+            .WithDescription("Sends confirmation to the new address. The current email and sessions remain active until confirmation succeeds.")
             .RequireAuthorization()
             .RequireRateLimiting("auth");
 
@@ -472,10 +490,15 @@ public static class AuthEndpoints
                 return Results.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Authentication required");
             }
 
-            var disabled = await authService.DisableMfaAsync(userId, request.CurrentPassword, request.Code);
-            return disabled
-                ? Results.NoContent()
-                : Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: "MFA could not be disabled", detail: "The password or authenticator/recovery code was incorrect.");
+            var result = await authService.DisableMfaAsync(userId, request.CurrentPassword, request.Code);
+            return result switch
+            {
+                MfaDisableResult.Success => Results.NoContent(),
+                MfaDisableResult.InvalidCredentials => Results.Problem(statusCode: StatusCodes.Status400BadRequest,
+                    title: "MFA could not be disabled", detail: "The password or authenticator/recovery code was incorrect."),
+                _ => Results.Problem(statusCode: StatusCodes.Status500InternalServerError,
+                    title: "MFA could not be disabled", detail: "The security change could not be completed. Try again later.")
+            };
         })
             .WithTags("Authentication")
             .WithSummary("Disable authenticator-app MFA")
@@ -503,7 +526,7 @@ public static class AuthEndpoints
                 AccountOperationResult.PasswordPolicyFailed => Results.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Password does not meet policy",
-                    detail: "Use at least 8 characters, including an uppercase letter, a lowercase letter, and a number."),
+                    detail: "Use at least 8 characters with uppercase, lowercase, and a number. Common or compromised passwords are rejected; retry later if password screening is unavailable."),
                 _ => Results.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Authentication required")
             };
         })

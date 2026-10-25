@@ -14,6 +14,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,9 +42,27 @@ builder.Services.AddIdentityCore<User>(options =>
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromDays(3650);
 })
     .AddEntityFrameworkStores<GameStoreContext>()
+    .AddPasswordValidator<ScreenedPasswordValidator>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 builder.Services.AddSingleton<ILookupNormalizer, AsciiLookupNormalizer>();
+builder.Services.Configure<PasswordHasherOptions>(options => options.IterationCount = 210_000);
+builder.Services.AddHttpClient("PwnedPasswords", client =>
+{
+    client.BaseAddress = new Uri("https://api.pwnedpasswords.com/range/");
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
+builder.Services.AddOptions<ForwardedHeadersOptions>().Configure<IConfiguration>((options, configuration) =>
+{
+    var trustedProxies = configuration.GetSection("ReverseProxy:KnownProxies").Get<string[]>() ?? [];
+    options.ForwardedHeaders = trustedProxies.Length == 0 ? ForwardedHeaders.None
+        : ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+    foreach (var proxy in trustedProxies)
+        options.KnownProxies.Add(IPAddress.Parse(proxy));
+    options.ForwardLimit = 1;
+});
 builder.Services.AddTransient<IAccountEmailSender, SmtpAccountEmailSender>();
 
 if (!builder.Environment.IsDevelopment() &&
@@ -59,17 +79,47 @@ if (!builder.Environment.IsDevelopment() && !builder.Configuration.GetValue("Ema
 
 builder.Services.AddRateLimiter(options =>
 {
+    // This additional limiter runs alongside the named auth baseline.
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        var path = context.Request.Path.Value?.TrimEnd('/').ToLowerInvariant();
+        var reset = path is "/auth/password/forgot" or "/auth/password/reset" or "/auth/email/resend-confirmation" or "/auth/me/email";
+        var passwordAttempt = path is "/auth/login" or "/auth/login/mfa" or "/auth/me/password"
+            or "/auth/me/mfa/setup" or "/auth/me/mfa/disable";
+        if (!reset && !passwordAttempt)
+            return RateLimitPartition.GetNoLimiter("other");
+
+        var key = $"{(reset ? "recovery" : path)}:{context.Connection.RemoteIpAddress?.MapToIPv6().ToString() ?? "unknown"}";
+        return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = reset ? 3 : 5,
+            Window = TimeSpan.FromMinutes(reset ? 15 : 5),
+            QueueLimit = 0,
+            AutoReplenishment = true
+        });
+    });
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     options.OnRejected = async (context, cancellationToken) =>
     {
-        context.HttpContext.Response.Headers.RetryAfter = "300";
+        var httpContext = context.HttpContext;
+        var logger = httpContext.RequestServices.GetRequiredService<ILoggerFactory>()
+            .CreateLogger("GameStore.Api.Security.RateLimiting");
+        var route = (httpContext.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText ?? "unmatched";
+        logger.LogWarning(new EventId(429, "RateLimitRejected"),
+            "Rate limit rejected request for route {Route}. ClientIpAvailable: {ClientIpAvailable}. TraceId: {TraceId}",
+            route, httpContext.Connection.RemoteIpAddress is not null, httpContext.TraceIdentifier);
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var remaining))
+        {
+            var retryAfter = Math.Max(1, (int)Math.Ceiling(remaining.TotalSeconds));
+            context.HttpContext.Response.Headers.RetryAfter = retryAfter.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
         await Results.Problem(
             statusCode: StatusCodes.Status429TooManyRequests,
             title: "Too many requests",
             detail: "Wait before retrying.").ExecuteAsync(context.HttpContext);
     };
     options.AddPolicy("auth", httpContext => RateLimitPartition.GetFixedWindowLimiter(
-        httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        httpContext.Connection.RemoteIpAddress?.MapToIPv6().ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = 10,
@@ -252,6 +302,7 @@ else if (!builder.Environment.IsDevelopment())
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseExceptionHandler();
 app.UseStatusCodePages();

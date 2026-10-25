@@ -23,7 +23,8 @@ public static class DataExtensions
                         "Bootstrap admin credentials are missing. Configure BootstrapAdmin:Username, BootstrapAdmin:Email, and BootstrapAdmin:Password using user secrets or environment variables.");
             }
 
-                await DbInitializer.SeedAdminAsync(dbContext, adminUsername, adminEmail, adminPassword);
+                await DbInitializer.SeedAdminAsync(dbContext, adminUsername, adminEmail, adminPassword,
+                    scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.IPasswordHasher<GameStore.Api.Entities.User>>());
         }
     }
 }
