@@ -19,18 +19,18 @@ jobs:
         with:
           dotnet-version: '9.0.x'
       - name: Restore
-        run: dotnet restore GameStore.Api.Tests/GameStore.Api.Tests.csproj
+        run: dotnet restore TradeNest.Api.Tests/TradeNest.Api.Tests.csproj
       - name: Test
         # Keep the normal nonzero exit code. Diagnostics never turn a failure green.
         run: >-
-          dotnet test GameStore.Api.Tests/GameStore.Api.Tests.csproj
+          dotnet test TradeNest.Api.Tests/TradeNest.Api.Tests.csproj
           --no-restore --configuration Release
           --logger "trx;LogFileName=api-tests.trx"
           --results-directory TestResults
           --blame-hang --blame-hang-timeout 2m
           --blame-hang-dump-type none
       - name: Build maintenance tool
-        run: dotnet build tools/GameStore.Maintenance/GameStore.Maintenance.csproj --configuration Release
+        run: dotnet build tools/TradeNest.Maintenance/TradeNest.Maintenance.csproj --configuration Release
       - name: Upload test diagnostics
         # Reports contain test names and assertions, not production databases or
         # environment dumps. Upload even after test failures for diagnosis.

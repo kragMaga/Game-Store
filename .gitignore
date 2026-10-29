@@ -25,3 +25,6 @@ secrets.json
 *.sqlite
 *.sqlite3
 backups/
+
+# Local package caches and historical build output are not application source.
+**/.nuget/

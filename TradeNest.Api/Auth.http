@@ -1,0 +1,15 @@
+@baseUrl = http://localhost:5019
+
+### Register an account; confirm the emailed token before login.
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{"username":"store.owner","email":"owner@example.com","password":"Replace-with-a-unique-password-593!"}
+
+### Login and use the returned access token as a bearer token on business routes.
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{"username":"store.owner","password":"Replace-with-a-unique-password-593!"}
+
+### Account operations and business roles are documented in README.md and docs/.

@@ -1,0 +1,6 @@
+# Dependencies, generated output and machine-specific settings are reproducible.
+node_modules/
+dist/
+*.tsbuildinfo
+.env.local
+coverage/
